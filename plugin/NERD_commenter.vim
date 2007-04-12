@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  3-apr-2007
+" Last Change:  12 apr 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.0.0
+let s:NERD_commenter_version = 2.0.1
 
 " For help documentation type :help NERD_commenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -62,7 +62,7 @@ call s:InitVariable("g:NERDBlockComIgnoreEmpty", 0)
 call s:InitVariable("g:NERDCommentWholeLinesInVMode", 0)
 call s:InitVariable("g:NERDCompactSexyComs", 0)
 call s:InitVariable("g:NERDDefaultNesting", 0)
-call s:InitVariable("g:NERDMenuMode", 2)
+call s:InitVariable("g:NERDMenuMode", 3)
 call s:InitVariable("g:NERDLPlace", "[>")
 call s:InitVariable("g:NERDUsePlaceHolders", 1)
 call s:InitVariable("g:NERDRemoveAltComs", 1)
@@ -91,7 +91,7 @@ call s:InitVariable("g:NERDComToEOLMap", g:NERDMapleader . '$')
 call s:InitVariable("g:NERDPrependComMap", g:NERDMapleader . 'I')
 call s:InitVariable("g:NERDUncomLineMap", g:NERDMapleader . 'u')
 
-" Section: Comment mapping functions and autocommands {{{1
+" Section: Comment mapping functions, autocommands and commands {{{1
 " ============================================================================
 " Section: Comment enabler autocommands {{{2
 " ============================================================================
@@ -107,6 +107,7 @@ if !exists("nerd_autocmds_loaded")
     augroup END
 
 endif
+
 
 " Function: s:SetUpForNewFiletype(filetype) function {{{2
 " This function is responsible for setting up buffer scoped variables for the 
@@ -445,6 +446,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "ocaml" 
         call s:MapDelimiters('(*','*)') 
+    elseif a:filetype == "occam" 
+        call s:MapDelimiters('--','') 
     elseif a:filetype == "omlet" 
         call s:MapDelimiters('(*','*)') 
     elseif a:filetype == "omnimark" 
@@ -727,7 +730,7 @@ function s:SetUpForNewFiletype(filetype)
         "get them from &commentstring.
     else
         "print a disclaimer to the user :) 
-        call s:NerdEcho("NERDCommenter:Unknown filetype '".a:filetype."', setting delimiters by &commentstring.\nPleeeeease email the author of the NERD_commenter with this filetype\nand its delimiters!", 0)
+        call s:NerdEcho("Unknown filetype '".a:filetype."', setting delimiters by &commentstring.\nPleeeeease email the author of the NERD commenter with this filetype\nand its delimiters!", 0)
 
         "extract the delims from &commentstring 
         let left= substitute(&commentstring, '\(.*\)%s.*', '\1', '')
@@ -784,7 +787,7 @@ function s:SwitchToAlternativeDelimiters(printMsgs)
     "alternative comment style so bail out 
     if (b:leftAlt=="" && b:rightAlt=="")
         if a:printMsgs 
-            call s:NerdEcho("NERDCommenter:Cannot use alternative delimiters, none are specified", 0)
+            call s:NerdEcho("Cannot use alternative delimiters, none are specified", 0)
         endif
         return 0
     endif
@@ -805,7 +808,7 @@ function s:SwitchToAlternativeDelimiters(printMsgs)
     if a:printMsgs
         let leftNoEsc = b:left
         let rightNoEsc = b:right
-        call s:NerdEcho("NERDCommenter:Now using " . leftNoEsc . " " . rightNoEsc . " to delimit comments", 1)
+        call s:NerdEcho("Now using " . leftNoEsc . " " . rightNoEsc . " to delimit comments", 1)
     endif
 
     return 1
@@ -839,7 +842,7 @@ function s:AppendCommentToLine()
     startinsert
 endfunction
 
-" Function: s:CommentBlock(top, bottom, lSide, rSide, forceNested ) range {{{2
+" Function: s:CommentBlock(top, bottom, lSide, rSide, forceNested ) {{{2
 " This function is used to comment out a region of code. This region is
 " specified as a bounding box by arguments to the function. Note that the
 " range keyword is specified for this function. This is because this function
@@ -851,7 +854,7 @@ endfunction
 "   -lSide: the column number for the left most column in the region
 "   -rSide: the column number for the right most column in the region
 "   -forceNested: a flag indicating whether comments should be nested 
-function s:CommentBlock(top, bottom, lSide, rSide, forceNested ) range
+function s:CommentBlock(top, bottom, lSide, rSide, forceNested ) 
     " we need to create local copies of these arguments so we can modify them
     let top = a:top
     let bottom = a:bottom
@@ -1076,7 +1079,7 @@ function s:CommentBlock(top, bottom, lSide, rSide, forceNested ) range
     endif
 endfunction
 
-" Function: s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine) range {{{2
+" Function: s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine) {{{2
 " This function comments a range of lines.
 "
 " Args:
@@ -1085,7 +1088,7 @@ endfunction
 "   -alignRight/alignLeft: 0/1 if the comments delimiters should/shouldnt be
 "    aligned left/right
 "   -firstLine/lastLine: the top and bottom lines to comment
-function s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine) range
+function s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine) 
     " we need to get the left and right indexes of the leftmost char in the
     " block of of lines and the right most char so that we can do alignment of
     " the delimiters if the user has specified
@@ -1142,17 +1145,21 @@ function s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine)
 
 endfunction
 
-" Function: s:CommentLinesMinimal(firstLine, lastLine) range {{{2
+" Function: s:CommentLinesMinimal(firstLine, lastLine) {{{2
 " This function comments a range of lines in a minimal style. I
 "
 " Args:
 "   -firstLine/lastLine: the top and bottom lines to comment
-function s:CommentLinesMinimal(firstLine, lastLine) range
+function s:CommentLinesMinimal(firstLine, lastLine) 
+    "check that minimal comments can be done on this filetype 
+    if b:right == '' && b:rightAlt == ''
+        throw 'NERDCommenter.Delimiters exception: Minimal comments can only be used for filetypes that have multipart delimiters'
+    endif
+
     "if we need to use place holders for the comment, make sure they are
     "enabled for this filetype 
     if !g:NERDUsePlaceHolders && s:DoesBlockHaveMultipartDelim(a:firstLine, a:lastLine)
-        call s:NerdEcho("NERDCommenter: comment aborted. Place holders are required but disabled.",1)
-        return
+        throw 'NERDCommenter.Settings exception: Placeoholders are required but disabled.'
     endif
 
     "get the left and right delims to smack on 
@@ -1198,15 +1205,20 @@ endfunction
 " Args:
 "   -topline: the line num of the top line in the sexy comment
 "   -bottomline: the line num of the bottom line in the sexy comment
-function s:CommentLinesSexy(topline, bottomline) range
-
+function s:CommentLinesSexy(topline, bottomline)
     let left = s:GetSexyComLeft(0, 0)
     let right = s:GetSexyComRight(0, 0)
 
     "check if we can do a sexy comment with the available delimiters 
     if left == -1 || right == -1
-        return -1
+        throw 'NERDCommenter.Delimiters exception: cannot perform sexy comments with available delimiters.'
     endif
+
+    "make sure the lines arent already commented sexually
+    if !s:GetCanSexyCommentLines(a:topline, a:bottomline)
+        throw 'NERDCommenter.Nesting exception: cannot nest sexy comments'
+    endif
+
 
     let sexyComMarker = s:GetSexyComMarker(0,0)
     let sexyComMarkerSpaced = s:GetSexyComMarker(1,0)
@@ -1289,26 +1301,14 @@ function s:CommentLinesSexy(topline, bottomline) range
 
 endfunction
 
-" Function: s:CommentLinesToggle(forceNested, alignLeft, alignRight, firstLine, lastLine) range {{{2
+" Function: s:CommentLinesToggle(forceNested, firstLine, lastLine) {{{2
 " Applies "toggle" commenting to the given range of lines
 "
 " Args:
 "   -forceNested: a flag indicating whether the called is requesting the comment
 "    to be nested if need be
-"   -alignRight/alignLeft: 0/1 if the comments delimiters should/shouldnt be
-"    aligned left/right
 "   -firstLine/lastLine: the top and bottom lines to comment
-function s:CommentLinesToggle(forceNested, alignLeft, alignRight, firstLine, lastLine) range
-    " we need to get the left and right indexes of the leftmost char in the
-    " block of of lines and the right most char so that we can do alignment of
-    " the delimiters if the user has specified
-    let leftAlignIndx = s:GetLeftMostIndx(a:forceNested, 0, a:firstLine, a:lastLine)
-    let rightAlignIndx = s:GetRightMostIndx(a:forceNested, 0, a:firstLine, a:lastLine)
-
-    " gotta add the length of the left delimiter onto the rightAlignIndx cos
-    " we'll be adding a left delim to the line
-    let rightAlignIndx = rightAlignIndx + strlen(s:GetLeft(0, 1, 0))
-
+function s:CommentLinesToggle(forceNested, firstLine, lastLine) 
     " now we actually comment the lines. Do it line by line 
     let currentLine = a:firstLine
     while currentLine <= a:lastLine
@@ -1325,41 +1325,8 @@ function s:CommentLinesToggle(forceNested, alignLeft, alignRight, firstLine, las
                 let theLine = s:SwapOutterMultiPartDelimsForPlaceHolders(theLine)
             endif
 
-            if a:alignLeft
-                " let theLine = s:AddLeftDelimAligned(b:left, theLine, leftAlignIndx)
-                let theLine = s:AddLeftDelimAligned(s:GetLeft(0,1,0), theLine, leftAlignIndx)
-            else
-                let theLine = s:AddLeftDelim(s:GetLeft(0, 1, 0), theLine)
-            endif
-            if a:alignRight
-                let theLine = s:AddRightDelimAligned(s:GetRight(0, 1, 0), theLine, rightAlignIndx)
-            else
-                let theLine = s:AddRightDelim(s:GetRight(0, 1, 0), theLine)
-            endif
-
-        "re-align the delims existing if needed 
-        elseif (a:alignLeft || a:alignRight) && !a:forceNested && (s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine)) 
-            "get the delims the line is commented with 
-            if s:IsCommentedFromStartOfLine(b:left, theLine) 
-                let l:left = s:GetLeft(0, 1, 0)
-                let l:right = s:GetRight(0, 1, 0)
-            else
-                let l:left = s:GetLeft(1, 1, 0)
-                let l:right = s:GetRight(1, 1, 0)
-            endif
-            let theLine = s:UncommentLineNormal(theLine)
-
-            if a:alignLeft
-                let theLine = s:AddLeftDelimAligned(l:left, theLine, leftAlignIndx)
-            else
-                let theLine = s:AddLeftDelim(l:left, theLine)
-            endif
-            if a:alignRight
-                let theLine = s:AddRightDelimAligned(l:right, theLine, rightAlignIndx)
-            else
-                let theLine = s:AddRightDelim(l:right, theLine)
-            endif
-
+            let theLine = s:AddLeftDelim(s:GetLeft(0, 1, 0), theLine)
+            let theLine = s:AddRightDelim(s:GetRight(0, 1, 0), theLine)
         endif
 
         " restore leading tabs if appropriate 
@@ -1384,7 +1351,7 @@ endfunction
 "   -bottomCol: the bottom right col for this comment
 "   -forceNested: whether the caller wants comments to be nested if the
 "    line(s) are already commented
-function s:CommentRegion(topLine, topCol, bottomLine, bottomCol, forceNested) range
+function s:CommentRegion(topLine, topCol, bottomLine, bottomCol, forceNested) 
     "we may need to switch to the alt delims if the current ones arent
     "multi-part.
     let didSwitchDelims = -1
@@ -1433,91 +1400,13 @@ function s:CommentRegion(topLine, topCol, bottomLine, bottomCol, forceNested) ra
 endfunction
 
 
-" Function: s:DoComment(forceNested, isVisual, alignLeft, alignRight, type) function {{{2
-" This function is a Wrapper for the main commenting functions
-"
-" Args:
-"   -forceNested: a flag indicating whether comments should be nested 
-"   -isVisual: a flag indicating whether the comment is requested in visual
-"    mode or not
-"   -alignLeft/alignRight: flags indicating whether the comment delimiters should be
-"    aligned left/right
-"   -type: the type of commenting requested. Can be "sexy", "invert",
-"   "minimal", "toggle" or "norm"
-function s:DoComment(forceNested, isVisual, alignLeft, alignRight, type) 
-    " we want case sensitivity when commenting 
-    let prevIgnoreCase = &ignorecase
-    set noignorecase
-
-    if a:isVisual
-        let firstLine = line("'<")
-        let lastLine = line("'>")
-        let firstCol = col("'<")
-        let lastCol = col("'>")
-    else
-        let firstLine = line(".")
-        let lastLine = firstLine
-    endif
-
-    if a:type == 'norm'
-        if a:isVisual && visualmode() == ""
-            call s:CommentBlock(firstLine, lastLine, firstCol, lastCol, a:forceNested)
-        elseif a:isVisual && visualmode() == "v" && (g:NERDCommentWholeLinesInVMode==0 || (g:NERDCommentWholeLinesInVMode==2 && s:HasMultipartDelims()))
-            call s:CommentRegion(firstLine, firstCol, lastLine, lastCol, a:forceNested)
-        else
-            call s:CommentLines(a:forceNested, a:alignLeft, a:alignRight, firstLine, lastLine)
-        endif
-
-    elseif a:type == 'invert'
-        call s:InvertComment(firstLine, lastLine)
-
-    elseif a:type == 'sexy'
-        " see if the selected regions have any sexy comments 
-        let currentLine = firstLine
-        let foundSexyCom=0
-        while(currentLine <= lastLine)
-            if(s:FindBoundingLinesOfSexyCom(currentLine) != -1)
-                let foundSexyCom=1
-                break
-            endif
-            let currentLine = currentLine + 1
-        endwhile
-
-        " we dont allow nested comments yet.. 
-        if foundSexyCom 
-            call s:NerdEcho("NERDCommenter: Sexy comment aborted. Nested sexy commenting not supported yet..", 0)
-        else
-            call s:CommentLinesSexy(firstLine, lastLine)
-        endif
-
-    elseif a:type == 'toggle'
-        let theLine = getline(firstLine)
-
-        if s:FindBoundingLinesOfSexyCom(firstLine)!=-1 || s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine)
-            call s:UncommentLines(1, firstLine, lastLine)
-        else
-            call s:CommentLinesToggle(a:forceNested, a:alignLeft, a:alignRight, firstLine, lastLine)
-        endif
-
-    elseif a:type == 'minimal'
-        "check that minimal comments can be done on this filetype 
-        if b:right == '' && b:rightAlt == ''
-            call s:NerdEcho('Minimal comments can only be used for filetypes that have multipart delimiters', 0)
-            return
-        endif
-        call s:CommentLinesMinimal(firstLine, lastLine)
-    endif
-
-    let &ignorecase = prevIgnoreCase
-endfunction
-
 " Function: s:InvertComment(firstLine, lastLine) function {{{2
 " Inverts the comments on the lines between and including the given line
 " numbers i.e all commented lines are uncommented and vice versa
 " Args:
 "   -firstLine: the top of the range of lines to be inverted
 "   -lastLine: the bottom of the range of lines to be inverted
-function s:InvertComment(firstLine, lastLine) range
+function s:InvertComment(firstLine, lastLine) 
 
     " go thru all lines in the given range 
     let currentLine = a:firstLine
@@ -1544,11 +1433,102 @@ function s:InvertComment(firstLine, lastLine) range
 
         " the line isnt commented 
         else
-            call s:CommentLinesToggle(1, 0, 0, currentLine, currentLine)
+            call s:CommentLinesToggle(1, currentLine, currentLine)
             let currentLine = currentLine + 1
         endif
 
     endwhile
+endfunction
+
+" Function: NERDComment(isVisual, alignLeft, alignRight, type) function {{{2
+" This function is a Wrapper for the main commenting functions
+"
+" Args:
+"   -isVisual: a flag indicating whether the comment is requested in visual
+"    mode or not
+"   -type: the type of commenting requested. Can be 'sexy', 'invert',
+"    'minimal', 'toggle', 'alignLeft', 'alignRight', 'alignBoth', 'norm',
+"    'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment'
+function! NERDComment(isVisual, type) 
+    " we want case sensitivity when commenting 
+    let prevIgnoreCase = &ignorecase
+    set noignorecase
+
+    if a:isVisual
+        let firstLine = line("'<")
+        let lastLine = line("'>")
+        let firstCol = col("'<")
+        let lastCol = col("'>")
+    else
+        let firstLine = line(".")
+        let lastLine = firstLine
+    endif
+
+    let forceNested = (a:type == 'nested' || g:NERDDefaultNesting)
+
+    if a:type == 'norm' || a:type == 'nested'
+        if a:isVisual && visualmode() == ""
+            call s:CommentBlock(firstLine, lastLine, firstCol, lastCol, forceNested)
+        elseif a:isVisual && visualmode() == "v" && (g:NERDCommentWholeLinesInVMode==0 || (g:NERDCommentWholeLinesInVMode==2 && s:HasMultipartDelims()))
+            call s:CommentRegion(firstLine, firstCol, lastLine, lastCol, forceNested)
+        else
+            call s:CommentLines(forceNested, 0, 0, firstLine, lastLine)
+        endif
+
+    elseif a:type == 'alignLeft' || a:type == 'alignRight' || a:type == 'alignBoth'
+        let alignLeft = (a:type == 'alignLeft' || a:type == 'alignBoth')
+        let alignRight = (a:type == 'alignRight' || a:type == 'alignBoth')
+        call s:CommentLines(forceNested, alignLeft, alignRight, firstLine, lastLine)
+
+    elseif a:type == 'invert'
+        call s:InvertComment(firstLine, lastLine)
+
+    elseif a:type == 'sexy'
+        try
+            call s:CommentLinesSexy(firstLine, lastLine)
+        catch /NERDCommenter.Delimiters/
+            call s:NerdEcho("Sexy comments cannot be done with the available delimiters", 0)
+        catch /NERDCommenter.Nesting/
+            call s:NerdEcho("Sexy comment aborted. Nested sexy cannot be nested", 0)
+        endtry
+
+    elseif a:type == 'toggle'
+        let theLine = getline(firstLine)
+
+        if s:FindBoundingLinesOfSexyCom(firstLine)!=-1 || s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine)
+            call s:UncommentLines(1, firstLine, lastLine)
+        else
+            call s:CommentLinesToggle(forceNested, firstLine, lastLine)
+        endif
+
+    elseif a:type == 'minimal'
+        try
+            call s:CommentLinesMinimal(firstLine, lastLine)
+        catch /NERDCommenter.Delimiters/
+            call s:NerdEcho("Minimal comments can only be used for filetypes that have multipart delimiters.", 0)
+        catch /NERDCommenter.Settings/
+            call s:NerdEcho("Place holders are required but disabled.", 0)
+        endtry
+
+    elseif a:type == 'toEOL'
+        call s:SaveScreenState()
+        call s:CommentBlock(firstLine, firstLine, col("."), col("$")-1, 1)
+        call s:RestoreScreenState()
+
+    elseif a:type == 'prepend'
+        call s:PrependCommentToLine()
+
+    elseif a:type == 'append'
+        call s:AppendCommentToLine()
+
+    elseif a:type == 'insert'
+        call s:PlaceDelimitersAndInsBetween()
+
+    elseif a:type == 'uncomment'
+        call s:UncommentLines(0, firstLine, lastLine)
+    endif
+
+    let &ignorecase = prevIgnoreCase
 endfunction
 
 " Function: s:PlaceDelimitersAndInsBetween() function {{{2
@@ -1765,7 +1745,7 @@ function s:UncommentLinesSexy(topline, bottomline)
     "check if it is even possible for sexy comments to exist with the
     "available delimiters 
     if left == -1 || right == -1
-        return -1
+        throw 'NERDCommenter.Delimiters exception: cannot uncomment sexy comments with available delimiters.'
     endif
 
     let leftUnEsc = s:GetSexyComLeft(0,0)
@@ -2186,7 +2166,7 @@ function s:FindBoundingLinesOfSexyCom(lineNum)
         let left = s:GetLeft(1,0,1)
         let right = s:GetRight(1,0,1)
     else
-        return -1 
+        return -1
     endif
 
     let sexyComMarker = s:GetSexyComMarker(0, 1)
@@ -2275,6 +2255,19 @@ function s:GetCanCommentLine(forceNested, lineNum)
     return 0
 endfunction
 
+" Function: s:GetCanSexyCommentLines(topline, bottomline) {{{2
+" Return: 1 if the given lines can be commented sexually, 0 otherwise
+function s:GetCanSexyCommentLines(topline, bottomline)
+    " see if the selected regions have any sexy comments 
+    let currentLine = a:topline
+    while(currentLine <= a:bottomline)
+        if(s:FindBoundingLinesOfSexyCom(currentLine) != -1)
+            return 0
+        endif
+        let currentLine = currentLine + 1
+    endwhile
+    return 1
+endfunction
 " Function: s:GetCanToggleCommentLine(forceNested, line) {{{2
 "This function is used to determine whether the given line can be toggle commented.
 "It returns 1 if it can be and 0 otherwise
@@ -2753,8 +2746,7 @@ function s:InstallDocumentation(full_name, revision)
                 execute l:mkdir_cmd . '"' . l:vim_doc_path . '"'
                 if (!(filewritable(l:vim_doc_path) == 2))
                     " Put a warning:
-                    call s:NerdEcho("Unable to open documentation directory", 0)
-                    call s:NerdEcho(" type :help add-local-help for more informations.", 0)
+                    call s:NerdEcho("Unable to open documentation directory \ntype :help add-local-help for more information.", 0)
                     echo l:vim_doc_path
                     return 0
                 endif
@@ -3115,7 +3107,6 @@ function s:IsSexyComment(topline, bottomline)
     endwhile
 
     "we have not found anything to suggest that this isnt a sexy comment so
-    "return 1 
     return 1
 
 endfunction
@@ -3134,10 +3125,10 @@ function s:NerdEcho(msg, typeOfMsg)
 
     if a:typeOfMsg == 0
         echohl WarningMsg
-        echo a:msg
+        echo 'NERDCommenter:' . a:msg
         echohl None
     elseif a:typeOfMsg == 1
-        echo a:msg
+        echo 'NERDCommenter:' . a:msg
     endif
 endfunction
 
@@ -3213,8 +3204,7 @@ endfunction
 "
 function s:RestoreScreenState()
     if !exists("t:NERDComOldTopLine") || !exists("t:NERDComOldPos")
-        echoerr 'cannot restore screen'
-        return
+        throw 'NERDCommenter exception: cannot restore screen'
     endif
 
     call cursor(t:NERDComOldTopLine, 0)
@@ -3297,60 +3287,60 @@ endfunction
 execute 'nnoremap <silent>' . g:NERDAltComMap . ' :call <SID>SwitchToAlternativeDelimiters(1)<cr>'
 
 " set up the mappings to comment out lines
-execute 'nnoremap <silent>' . g:NERDComLineMap . ' :call <SID>DoComment(g:NERDDefaultNesting, 0, 0, 0, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComLineMap . ' <ESC>:call <SID>DoComment(g:NERDDefaultNesting, 1, 0, 0 , "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComLineMap . ' :call NERDComment(0, "norm")<cr>'
+execute 'vnoremap <silent>' . g:NERDComLineMap . ' <ESC>:call NERDComment(1, "norm")<cr>'
 
 " set up the mappings to do toggle comments
-execute 'nnoremap <silent>' . g:NERDComLineToggleMap . ' :call <SID>DoComment(g:NERDDefaultNesting, 0, 0, 0, "toggle")<cr>'
-execute 'vnoremap <silent>' . g:NERDComLineToggleMap . ' <ESC>:call <SID>DoComment(g:NERDDefaultNesting, 1, 0, 0, "toggle")<cr>'
+execute 'nnoremap <silent>' . g:NERDComLineToggleMap . ' :call NERDComment(0, "toggle")<cr>'
+execute 'vnoremap <silent>' . g:NERDComLineToggleMap . ' <ESC>:call NERDComment(1, "toggle")<cr>'
 
 " set up the mapp to do minimal comments
-execute 'nnoremap <silent>' . g:NERDComLineMinimalMap . ' :call <SID>DoComment(g:NERDDefaultNesting, 0, 0, 0, "minimal")<cr>'
-execute 'vnoremap <silent>' . g:NERDComLineMinimalMap . ' <ESC>:call <SID>DoComment(g:NERDDefaultNesting, 1, 0, 0, "minimal")<cr>'
+execute 'nnoremap <silent>' . g:NERDComLineMinimalMap . ' :call NERDComment(0, "minimal")<cr>'
+execute 'vnoremap <silent>' . g:NERDComLineMinimalMap . ' <ESC>:call NERDComment(1, "minimal")<cr>'
 
 " set up the mappings to comment out lines sexily
-execute 'nnoremap <silent>' . g:NERDComLineSexyMap . ' :call <SID>DoComment(0, 0, 0, 0, "sexy")<CR>'
-execute 'vnoremap <silent>' . g:NERDComLineSexyMap . ' <ESC>:call <SID>DoComment(0, 1, 0, 0, "sexy")<CR>'
+execute 'nnoremap <silent>' . g:NERDComLineSexyMap . ' :call NERDComment(0, "sexy")<CR>'
+execute 'vnoremap <silent>' . g:NERDComLineSexyMap . ' <ESC>:call NERDComment(1, "sexy")<CR>'
 
 " set up the mappings to do invert comments
-execute 'nnoremap <silent>' . g:NERDComLineInvertMap . ' :call <SID>DoComment(0, 0, 0, 0, "invert")<CR>'
-execute 'vnoremap <silent>' . g:NERDComLineInvertMap . ' <ESC>:call <SID>DoComment(0, 1, 0, 0, "invert")<CR>'
+execute 'nnoremap <silent>' . g:NERDComLineInvertMap . ' :call NERDComment(0, "invert")<CR>'
+execute 'vnoremap <silent>' . g:NERDComLineInvertMap . ' <ESC>:call NERDComment(1, "invert")<CR>'
 
 " set up the mappings to yank then comment out lines
 execute 'nmap <silent>' . g:NERDComLineYankMap . ' "0Y' . g:NERDComLineMap 
 execute 'vmap <silent>' . g:NERDComLineYankMap . ' "0ygv' . g:NERDComLineMap
 
 " set up the mappings for left aligned comments 
-execute 'nnoremap <silent>' . g:NERDComAlignLeftMap . ' :call <SID>DoComment(1, 0, 1, 0, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComAlignLeftMap . ' <ESC>:call <SID>DoComment(1, 1, 1, 0, "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComAlignLeftMap . ' :call NERDComment(0, "alignLeft")<cr>'
+execute 'vnoremap <silent>' . g:NERDComAlignLeftMap . ' <ESC>:call NERDComment(1, "alignLeft")<cr>'
 
 " set up the mappings for right aligned comments 
-execute 'nnoremap <silent>' . g:NERDComAlignRightMap . ' :call <SID>DoComment(1, 0, 0, 1, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComAlignRightMap . ' <ESC>:call <SID>DoComment(1, 1, 0, 1, "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComAlignRightMap . ' :call NERDComment(0, "alignRight")<cr>'
+execute 'vnoremap <silent>' . g:NERDComAlignRightMap . ' <ESC>:call NERDComment(1, "alignRight")<cr>'
 
 " set up the mappings for left and right aligned comments 
-execute 'nnoremap <silent>' . g:NERDComAlignBothMap . ' :call <SID>DoComment(1, 0, 1, 1, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComAlignBothMap . ' <ESC>:call <SID>DoComment(1, 1, 1, 1, "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComAlignBothMap . ' :call NERDComment(0, "alignBoth")<cr>'
+execute 'vnoremap <silent>' . g:NERDComAlignBothMap . ' <ESC>:call NERDComment(1, "alignBoth")<cr>'
 
 " set up the mappings to do nested comments 
-execute 'nnoremap <silent>' . g:NERDComLineNestMap . ' :call <SID>DoComment(1, 0, 0, 0, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComLineNestMap . ' <ESC>:call <SID>DoComment(1, 1, 0, 0, "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComLineNestMap . ' :call NERDComment(0, "norm")<cr>'
+execute 'vnoremap <silent>' . g:NERDComLineNestMap . ' <ESC>:call NERDComment(1, "norm")<cr>'
 
 " set up the mapping to uncomment a line 
-execute 'nnoremap <silent>' . g:NERDUncomLineMap . ' :call <SID>UncommentLines(0, line("."), line("."))<cr>'
-execute 'vnoremap <silent>' . g:NERDUncomLineMap . ' <ESC>:call <SID>UncommentLines(0, line("''<"), line("''>"))<cr>'
+execute 'nnoremap <silent>' . g:NERDUncomLineMap . ' :call NERDComment(0, "uncomment")<cr>'
+execute 'vnoremap <silent>' . g:NERDUncomLineMap . ' :call NERDComment(1, "uncomment")<cr>'
 
 " set up the mapping to comment out to the end of the line
-execute 'nnoremap <silent>' . g:NERDComToEOLMap . ' :call <SID>SaveScreenState()<cr>:call <SID>CommentBlock(line("."), line("."), col("."), col("$")-1, 1)<cr>:call <SID>RestoreScreenState()<cr><ESC>'
+execute 'nnoremap <silent>' . g:NERDComToEOLMap . ' :call NERDComment(0, "toEOL")<cr>'
 
 " set up the mappings to append comments to the line
-execute 'nmap <silent>' . g:NERDAppendComMap . ' :call <SID>AppendCommentToLine()<cr>'
+execute 'nmap <silent>' . g:NERDAppendComMap . ' :call NERDComment(0, "append")<cr>'
 
 " set up the mappings to append comments to the line
-execute 'nmap <silent>' . g:NERDPrependComMap . ' :call <SID>PrependCommentToLine()<cr>'
+execute 'nmap <silent>' . g:NERDPrependComMap . ' :call NERDComment(0, "prepend")<cr>'
 
 " set up the mapping to insert comment delims at the cursor position in insert mode
-execute 'inoremap <silent>' . g:NERDComInInsertMap . ' ' . '<SPACE><BS><ESC>:call <SID>PlaceDelimitersAndInsBetween()<CR>'
+execute 'inoremap <silent>' . g:NERDComInInsertMap . ' ' . '<SPACE><BS><ESC>:call NERDComment(0, "insert")<CR>'
 
 " Section: Menu item setup {{{1
 " ===========================================================================
@@ -3359,62 +3349,67 @@ execute 'inoremap <silent>' . g:NERDComInInsertMap . ' ' . '<SPACE><BS><ESC>:cal
 "check if the user wants the menu to be displayed 
 if g:NERDMenuMode != 0
 
-    "determine whether the user wants the menu to have a keyboard shortcut and
-    "set the menu root accordingly.
-    let s:menuRoot = g:NERDMenuMode == 1 ? "comment" : "&comment"
+    let menuRoot = ""
+    if g:NERDMenuMode == 1
+        let menuRoot = 'comment'
+    elseif g:NERDMenuMode == 2
+        let menuRoot = '&comment'
+    elseif g:NERDMenuMode == 3
+        let menuRoot = '&Plugin.&comment'
+    endif
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment<TAB>' . escape(g:NERDComLineMap, '\') . ' :call <SID>DoComment(g:NERDDefaultNesting, 0, 0, 0, "norm")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment<TAB>' . escape(g:NERDComLineMap, '\') . ' <ESC>:call <SID>DoComment(g:NERDDefaultNesting, 1, 0, 0, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment<TAB>' . escape(g:NERDComLineMap, '\') . ' :call NERDComment(0, "norm")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment<TAB>' . escape(g:NERDComLineMap, '\') . ' <ESC>:call NERDComment(1, "norm")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Toggle<TAB>' . escape(g:NERDComLineToggleMap, '\') . ' :call <SID>DoComment(g:NERDDefaultNesting, 0, 0, 0, "toggle")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Toggle<TAB>' . escape(g:NERDComLineToggleMap, '\') . ' <ESC>:call <SID>DoComment(g:NERDDefaultNesting, 1, 0, 0, "toggle")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Toggle<TAB>' . escape(g:NERDComLineToggleMap, '\') . ' :call NERDComment(0, "toggle")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Toggle<TAB>' . escape(g:NERDComLineToggleMap, '\') . ' <ESC>:call NERDComment(1, "toggle")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' :call <SID>DoComment(0, 0, 0, 0, "minimal")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' <ESC>:call <SID>DoComment(0, 1, 0, 0, "minimal")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' :call NERDComment(0, "minimal")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' <ESC>:call NERDComment(1, "minimal")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' :call <SID>DoComment(1, 0, 0, 0, "norm")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' <ESC>:call <SID>DoComment(1, 1, 0, 0, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' :call NERDComment(0, "norm")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' <ESC>:call NERDComment(1, "norm")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ To\ EOL<TAB>' . escape(g:NERDComToEOLMap, '\') . ' :call <SID>SaveScreenState()<cr>:call <SID>CommentBlock(line("."), line("."), col("."), col("$")-1, 1)<cr>:call <SID>RestoreScreenState()<cr>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ To\ EOL<TAB>' . escape(g:NERDComToEOLMap, '\') . ' :call NERDComment(0, "toEOL")<cr>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Invert<TAB>' . escape(g:NERDComLineInvertMap, '\') . ' :call <SID>DoComment(0,0,0,0,"invert")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Invert<TAB>' . escape(g:NERDComLineInvertMap, '\') . ' <ESC>:call <SID>DoComment(0,1,0,0,"invert")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Invert<TAB>' . escape(g:NERDComLineInvertMap, '\') . ' :call NERDComment(0,"invert")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Invert<TAB>' . escape(g:NERDComLineInvertMap, '\') . ' <ESC>:call NERDComment(1,"invert")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Sexily<TAB>' . escape(g:NERDComLineSexyMap, '\') . ' :call <SID>DoComment(0,0,0,0,"sexy")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Sexily<TAB>' . escape(g:NERDComLineSexyMap, '\') . ' <ESC>:call <SID>DoComment(0,1,0,0,"sexy")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Sexily<TAB>' . escape(g:NERDComLineSexyMap, '\') . ' :call NERDComment(0,"sexy")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Sexily<TAB>' . escape(g:NERDComLineSexyMap, '\') . ' <ESC>:call NERDComment(1,"sexy")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Yank\ line(s)\ then\ comment<TAB>' . escape(g:NERDComLineYankMap, '\') . ' "0Y' . g:NERDComLineMap 
-    execute 'vmenu <silent> '. s:menuRoot .'.Yank\ line(s)\ then\ comment<TAB>' . escape(g:NERDComLineYankMap, '\') . ' "0ygv' . g:NERDComLineMap
+    execute 'nmenu <silent> '. menuRoot .'.Yank\ line(s)\ then\ comment<TAB>' . escape(g:NERDComLineYankMap, '\') . ' "0Y' . g:NERDComLineMap 
+    execute 'vmenu <silent> '. menuRoot .'.Yank\ line(s)\ then\ comment<TAB>' . escape(g:NERDComLineYankMap, '\') . ' "0ygv' . g:NERDComLineMap
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Append\ Comment\ to\ Line<TAB>' . escape(g:NERDAppendComMap, '\') . ' :call <SID>AppendCommentToLine()<cr>'
-    execute 'nmenu <silent> '. s:menuRoot .'.Prepend\ Comment\ to\ Line<TAB>' . escape(g:NERDPrependComMap, '\') . ' :call <SID>PrependCommentToLine()<cr>'
+    execute 'nmenu <silent> '. menuRoot .'.Append\ Comment\ to\ Line<TAB>' . escape(g:NERDAppendComMap, '\') . ' :call NERDComment(0, "append")<cr>'
+    execute 'nmenu <silent> '. menuRoot .'.Prepend\ Comment\ to\ Line<TAB>' . escape(g:NERDPrependComMap, '\') . ' :call NERDComment(0, "prepend")<cr>'
 
-    execute 'menu <silent> '. s:menuRoot .'.-Sep-    :'
+    execute 'menu <silent> '. menuRoot .'.-Sep-    :'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Align\ Left\ (nested)<TAB>' . escape(g:NERDComAlignLeftMap, '\') . ' :call <SID>DoComment(1, 0, 1, 0, "norm")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Align\ Left\ (nested)<TAB>' . escape(g:NERDComAlignLeftMap, '\') . ' <ESC>:call <SID>DoComment(1, 1, 1, 0, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Align\ Left\ (nested)<TAB>' . escape(g:NERDComAlignLeftMap, '\') . ' :call NERDComment(0, "alignLeft")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Align\ Left\ (nested)<TAB>' . escape(g:NERDComAlignLeftMap, '\') . ' <ESC>:call NERDComment(1, "alignLeft")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Align\ Right\ (nested)<TAB>' . escape(g:NERDComAlignRightMap, '\') . ' :call <SID>DoComment(1, 0, 0, 1, "norm")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Align\ Right\ (nested)<TAB>' . escape(g:NERDComAlignRightMap, '\') . ' <ESC>:call <SID>DoComment(1, 1, 0, 1, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Align\ Right\ (nested)<TAB>' . escape(g:NERDComAlignRightMap, '\') . ' :call NERDComment(0, "alignRight")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Align\ Right\ (nested)<TAB>' . escape(g:NERDComAlignRightMap, '\') . ' <ESC>:call NERDComment(1, "alignRight")<CR>'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Comment\ Align\ Both\ (nested)<TAB>' . escape(g:NERDComAlignBothMap, '\') . ' :call <SID>DoComment(1, 0, 1, 1, "norm")<CR>'
-    execute 'vmenu <silent> '. s:menuRoot .'.Comment\ Align\ Both\ (nested)<TAB>' . escape(g:NERDComAlignBothMap, '\') . ' <ESC>:call <SID>DoComment(1, 1, 1, 1, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Align\ Both\ (nested)<TAB>' . escape(g:NERDComAlignBothMap, '\') . ' :call NERDComment(0, "alignBoth")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Align\ Both\ (nested)<TAB>' . escape(g:NERDComAlignBothMap, '\') . ' <ESC>:call NERDComment(1, "alignBoth")<CR>'
 
-    execute 'menu <silent> '. s:menuRoot .'.-Sep2-    :'
+    execute 'menu <silent> '. menuRoot .'.-Sep2-    :'
 
-    execute 'menu <silent> '. s:menuRoot .'.Uncomment<TAB>' . escape(g:NERDUncomLineMap, '\') . ' :call <SID>UncommentLines(0, line("."), line("."))<CR>'
-    execute 'vmenu <silent>' . s:menuRoot.'.Uncomment<TAB>' . escape(g:NERDUncomLineMap, '\') . ' <esc>:call <SID>UncommentLines(0, line("''<"), line("''>"))<cr>'
+    execute 'menu <silent> '. menuRoot .'.Uncomment<TAB>' . escape(g:NERDUncomLineMap, '\') . ' :call NERDComment(0, "uncomment")<cr>'
+    execute 'vmenu <silent>' . menuRoot.'.Uncomment<TAB>' . escape(g:NERDUncomLineMap, '\') . ' <esc>:call NERDComment(1, "uncomment")<cr>'
 
-    execute 'menu <silent> '. s:menuRoot .'.-Sep3-    :'
+    execute 'menu <silent> '. menuRoot .'.-Sep3-    :'
 
-    execute 'nmenu <silent> '. s:menuRoot .'.Use\ Alternative\ Delimiters<TAB>' . escape(g:NERDAltComMap, '\') . ' :call <SID>SwitchToAlternativeDelimiters(1)<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Use\ Alternative\ Delimiters<TAB>' . escape(g:NERDAltComMap, '\') . ' :call <SID>SwitchToAlternativeDelimiters(1)<CR>'
 
 
-    execute 'imenu <silent> '. s:menuRoot .'.Insert\ Delims<TAB>' . escape(g:NERDComInInsertMap, '\') . ' <SPACE><BS><ESC>:call <SID>PlaceDelimitersAndInsBetween()<CR>'
+    execute 'imenu <silent> '. menuRoot .'.Insert\ Delims<TAB>' . escape(g:NERDComInInsertMap, '\') . ' <SPACE><BS><ESC>:call NERDComment(0, "insert")<CR>'
 
-    execute 'menu '. s:menuRoot .'.-Sep4-    :'
+    execute 'menu '. menuRoot .'.-Sep4-    :'
 
-    execute 'menu <silent>'. s:menuRoot .'.Help<TAB>:help\ NERD_commenter-contents :help NERD_commenter-contents<CR>'
+    execute 'menu <silent>'. menuRoot .'.Help<TAB>:help\ NERD_commenter-contents :help NERD_commenter-contents<CR>'
 endif
 
 " Section: Doc installation call {{{1
@@ -3458,6 +3453,7 @@ CONTENTS {{{2                                        *NERD_commenter-contents*
             2.2.14 Uncomment line map.........|NERD_com-uncomment-line|
         2.3 Supported filetypes...............|NERD_com-filetypes|
         2.4 Sexy Comments.....................|NERD_com_sexy_comments|
+        2.5 The NERDComment function..........|NERD_com_NERDComment|
     3.Customisation...........................|NERD_com-customisation|
         3.1 Customisation summary.............|NERD_com-cust-summary|
         3.2 Customisation details.............|NERD_com-cust-details|
@@ -3473,16 +3469,12 @@ CONTENTS {{{2                                        *NERD_commenter-contents*
 ==============================================================================
 1. Intro {{{2                                                 *NERD_commenter*
 
-The NERD commenter provides a set of handy key mappings for commenting code.
-These mappings are consistent across all supported filetypes. 
+The NERD commenter provides many different commenting operations and styles
+which may be invoked via key mappings and a commenting menu. These operations
+are available for most filetypes.
 
-When writing the NERD commenter I have tried to give it as many
-features/options as possible while keeping it so that the plugin can still be
-used with little or no knowledge of these. The average user need only know
-about a few key mappings to use the NERD commenter while there are plenty of
-other features for the l33t nerd take advantage of.
-
-Enjoy :D
+There are also options available that allow you to tweak the commenting engine
+to you taste.
 
 ==============================================================================
 2. Functionality provided {{{2                        *NERD_com-functionality*
@@ -3754,7 +3746,7 @@ Related  options:
 
 
 ------------------------------------------------------------------------------
-2.3 Supported filetypes                                   *NERD_com-filetypes*
+2.3 Supported filetypes {{{3                              *NERD_com-filetypes*
 
 Filetypes that can be commented by this plugin:
 abaqus abc acedb ada ahdl amiga aml ampl ant apache apachestyle asm68k asm asn
@@ -3769,24 +3761,24 @@ ist jam java javascript jess jgraph jproperties jproperties jsp kconfig kix
 kscript lace lex lftp lifelines lilo lisp lite lotos lout lprolog lscript lss
 lua lynx m4 mail make maple masm master matlab mel mf mib mma model moduala.
 modula2 modula3 monk mush muttrc named nasm nastran natural ncf netdict netrw
-nqc nsis ocaml omlet omnimark openroad opl ora ox pascal passwd pcap pccts perl
-pfmain php phtml pic pike pilrc pine plaintex plm plsql po postscr pov povini
-ppd ppwiz procmail progress prolog psf ptcap python python qf radiance
-ratpoison r rc readline rebol registry remind rexx robots rpl rtf ruby sa samba
-sas sather scheme scilab screen scsh sdl sed selectbuf sgml sgmldecl sgmllnx
-sicad simula sinda skill slang sl slrnrc sm smil smith sml snnsnet snnspat
-snnsres snobol4 spec specman spice sql sqlforms sqlj sqr squid st stp strace
-svn tads taglist tags tak tasm tcl terminfo tex plaintex texinfo texmf tf tidy
-tli trasys tsalt tsscl tssgm uc uil vb verilog vgrindefs vhdl vim viminfo
-virata vrml vsejcl webmacro wget winbatch wml [^w]*sh wvdial xdefaults xf86conf
-xhtml xkb xmath xml xmodmap xpm2 xpm xslt yacc yaml z8a
+nqc nsis ocaml occam omlet omnimark openroad opl ora ox pascal passwd pcap
+pccts perl pfmain php phtml pic pike pilrc pine plaintex plm plsql po postscr
+pov povini ppd ppwiz procmail progress prolog psf ptcap python python qf
+radiance ratpoison r rc readline rebol registry remind rexx robots rpl rtf
+ruby sa samba sas sather scheme scilab screen scsh sdl sed selectbuf sgml
+sgmldecl sgmllnx sicad simula sinda skill slang sl slrnrc sm smil smith sml
+snnsnet snnspat snnsres snobol4 spec specman spice sql sqlforms sqlj sqr squid
+st stp strace svn tads taglist tags tak tasm tcl terminfo tex plaintex texinfo
+texmf tf tidy tli trasys tsalt tsscl tssgm uc uil vb verilog vgrindefs vhdl
+vim viminfo virata vrml vsejcl webmacro wget winbatch wml [^w]*sh wvdial
+xdefaults xf86conf xhtml xkb xmath xml xmodmap xpm2 xpm xslt yacc yaml z8a
 
 If a language is not in the list of hardcoded supported filetypes then the
 &commentstring vim option is used.
 
 
 ------------------------------------------------------------------------------
-2.4 Sexy Comments                                     *NERD_com_sexy_comments*
+2.4 Sexy Comments {{{3                                *NERD_com_sexy_comments*
 These are comments that use one set of multipart comment delimiters as well as
 one other marker symbol. For example: >
     /*
@@ -3801,6 +3793,30 @@ one other marker symbol. For example: >
 Here the multipart delimiters are /* and */ and the marker is *. The NERD
 commenter is capable of adding and removing comments of this type.
 
+
+------------------------------------------------------------------------------
+2.5 The NERDComment function {{{3                       *NERD_com_NERDComment*
+
+All of the NERD commenter mappings and menu items invoke a single function
+which delegates the commenting work to other functions. This function is
+public and has the prototype: >
+    function! NERDComment(isVisual, type) 
+<
+The arguments to this function are simple: 
+    - isVisual: if you wish to do any kind of visual comment then set this to
+      1 and the function will use the '< and '> marks to find the comment
+      boundries. If set to 0 then the function will operate on the current
+      line.
+    - type: is used to specify what type of commenting operation is to be
+      performed, and it can be one of the following: 'sexy', 'invert',
+      'minimal', 'toggle', 'alignLeft', 'alignRight', 'alignBoth', 'norm',
+      'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment'
+
+For example, if you typed >
+    :call NERDComment(1, 'sexy')
+<
+then the script would do a sexy comment on the last visual selection.
+ 
 
 ==============================================================================
 3. Customisation {{{2                                 *NERD_com-customisation*
@@ -3817,9 +3833,8 @@ commenter is capable of adding and removing comments of this type.
 |NERDCommentWholeLinesInVMode|        Changes behaviour of visual comments.
 |NERDDefaultNesting|                  Tells the script to use nested comments
                                       by default.
-|NERDMenuMode|                        Determines if a NERD comment menu will
-                                      be made and whether the menu will have a
-                                      keyboard shortcut.
+|NERDMenuMode|                        Specifies how the NERD commenter menu
+                                      will appear (if at all).
 |NERDLPlace|                          Specifies what to use as the left
                                       delimiter placeholder when nesting
                                       comments.
@@ -4067,13 +4082,14 @@ manually (see |NERD_com-cust-keys|).
 
 ------------------------------------------------------------------------------
                                                                 *NERDMenuMode*
-Values: 0, 1 or 2.
-Default: 2
+Values: 0, 1, 2, 3.
+Default: 3
 
-This option can take 3 values:
-    "0": Turns the NERD commenter menu off completely.
-    "1": Turns the NERD commenter menu on with no menu shortcut.
-    "2": Turns the NERD commenter menu on with <alt>-c as the menu shortcut.
+This option can take 4 values:
+    "0": Turns the menu off.
+    "1": Turns the 'comment' menu on with no menu shortcut.
+    "2": Turns the 'comment 'menu on with <alt>-c as the shortcut.
+    "3": Turns the 'Plugin -> comment' menu on with <alt>-c as the shortcut.
     
 ------------------------------------------------------------------------------
                                                          *NERDUsePlaceHolders*
@@ -4236,6 +4252,15 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 6. Changelog {{{2                                         *NERD_com-changelog*
 
+2.0.1:
+    - Fixed the visual bell for the |NERDComToEOLMap| map.
+    - Added another possible value to the NERDMenuMode option which causes the
+      menu to be displayed under 'Plugin -> Comment'. See :h NERDMenuMode.
+      This new menu mode is now the default.
+    - Added support for the occam filetype (thanks to Anders for emailing me)
+    - Made the main commenting function (NERDComment) available outside the
+      script.
+    - bug fixes and refactoring
 
 2.0.0:
     - NOTE: renamed the script to  NERD_commenter.vim. When you install this
@@ -4383,7 +4408,8 @@ spaces were being eaten.
 Thanks to John O'Shea for emailing me about the RTF filetype.
 
 Thanks to Anders for emailing me a patch to help get rid of all the visual
-bells and screen scrolling.
+bells and screen scrolling, and for sending me the delimiters for the occam
+filetype.
 
 Thanks to Anders and Markus Klinik for emailing me about the screen scrolling
 issues and finally getting me off my ass about them :P
