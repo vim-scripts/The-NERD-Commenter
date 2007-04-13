@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  12 apr 2007
+" Last Change:  14 apr 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.0.1
+let s:NERD_commenter_version = 2.0.2
 
 " For help documentation type :help NERD_commenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -3323,8 +3323,8 @@ execute 'nnoremap <silent>' . g:NERDComAlignBothMap . ' :call NERDComment(0, "al
 execute 'vnoremap <silent>' . g:NERDComAlignBothMap . ' <ESC>:call NERDComment(1, "alignBoth")<cr>'
 
 " set up the mappings to do nested comments 
-execute 'nnoremap <silent>' . g:NERDComLineNestMap . ' :call NERDComment(0, "norm")<cr>'
-execute 'vnoremap <silent>' . g:NERDComLineNestMap . ' <ESC>:call NERDComment(1, "norm")<cr>'
+execute 'nnoremap <silent>' . g:NERDComLineNestMap . ' :call NERDComment(0, "nested")<cr>'
+execute 'vnoremap <silent>' . g:NERDComLineNestMap . ' <ESC>:call NERDComment(1, "nested")<cr>'
 
 " set up the mapping to uncomment a line 
 execute 'nnoremap <silent>' . g:NERDUncomLineMap . ' :call NERDComment(0, "uncomment")<cr>'
@@ -3367,8 +3367,8 @@ if g:NERDMenuMode != 0
     execute 'nmenu <silent> '. menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' :call NERDComment(0, "minimal")<CR>'
     execute 'vmenu <silent> '. menuRoot .'.Comment\ Minimal<TAB>' . escape(g:NERDComLineMinimalMap, '\') . ' <ESC>:call NERDComment(1, "minimal")<CR>'
 
-    execute 'nmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' :call NERDComment(0, "norm")<CR>'
-    execute 'vmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' <ESC>:call NERDComment(1, "norm")<CR>'
+    execute 'nmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' :call NERDComment(0, "nested")<CR>'
+    execute 'vmenu <silent> '. menuRoot .'.Comment\ Nested<TAB>' . escape(g:NERDComLineNestMap, '\') . ' <ESC>:call NERDComment(1, "nested")<CR>'
 
     execute 'nmenu <silent> '. menuRoot .'.Comment\ To\ EOL<TAB>' . escape(g:NERDComToEOLMap, '\') . ' :call NERDComment(0, "toEOL")<cr>'
 
@@ -4251,6 +4251,9 @@ to get illegal syntax when uncommenting them.
 
 ==============================================================================
 6. Changelog {{{2                                         *NERD_com-changelog*
+
+2.0.2:
+    - Minor bug fix that was stopping nested comments from working
 
 2.0.1:
     - Fixed the visual bell for the |NERDComToEOLMap| map.
