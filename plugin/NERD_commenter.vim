@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  11 may 2007
+" Last Change:  16 may 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.0.4
+let s:NERD_commenter_version = 2.0.5
 
 " For help documentation type :help NERD_commenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -91,6 +91,8 @@ call s:InitVariable("g:NERDComToEOLMap", g:NERDMapleader . '$')
 call s:InitVariable("g:NERDPrependComMap", g:NERDMapleader . 'I')
 call s:InitVariable("g:NERDUncomLineMap", g:NERDMapleader . 'u')
 
+let s:NERDFileNameEscape="[]#*$%'\" ?`!&();<>\\"
+
 " Section: Comment mapping functions, autocommands and commands {{{1
 " ============================================================================
 " Section: Comment enabler autocommands {{{2
@@ -164,6 +166,10 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('''', '')
     elseif a:filetype == "atlas" 
         call s:MapDelimiters('C','$') 
+    elseif a:filetype == "autohotkey" 
+        call s:MapDelimiters(';','') 
+    elseif a:filetype == "autoit" 
+        call s:MapDelimiters(';','') 
     elseif a:filetype == "automake" 
         call s:MapDelimitersWithAlternative('#','', 'dnl ', '') 
     elseif a:filetype == "ave" 
@@ -206,6 +212,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "clipper" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
+    elseif a:filetype == "cmake"
+        call s:MapDelimiters('#','')
     elseif a:filetype == "conf" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "config" 
@@ -240,6 +248,10 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters(';', '')
     elseif a:filetype == "diff" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "django" 
+        call s:MapDelimitersWithAlternative('<!--','-->', '{#', '#}') 
+    elseif a:filetype == "docbk" 
+        call s:MapDelimiters('<!--', '-->')
     elseif a:filetype == "dns" 
         call s:MapDelimiters(';', '')
     elseif a:filetype == "dosbatch" 
@@ -269,7 +281,7 @@ function s:SetUpForNewFiletype(filetype)
     elseif a:filetype == "erlang" 
         call s:MapDelimiters('%', '')
     elseif a:filetype == "eruby" 
-        call s:MapDelimitersWithAlternative('<%#', '-%>', '#', '')
+        call s:MapDelimitersWithAlternative('<!--', '-->', '<%#', '%>')
     elseif a:filetype == "eterm" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "expect" 
@@ -324,6 +336,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "html" 
         call s:MapDelimitersWithAlternative('<!--','-->', '//', '') 
+    elseif a:filetype == "htmldjango" 
+        call s:MapDelimitersWithAlternative('<!--','-->', '{#', '#}') 
     elseif a:filetype == "htmlos"
         call s:MapDelimiters('#','/#') 
     elseif a:filetype == "ia64" 
@@ -448,6 +462,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('', '')
     elseif a:filetype == "nqc" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "nroff"
+        call s:MapDelimiters('\"', '')
     elseif a:filetype == "nsis" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "ocaml" 
@@ -1884,7 +1900,6 @@ function s:UncommentLineNormal(line)
     "it is not properly commented with any delims so we check if it has
     "any random left or right delims on it and remove the outtermost ones 
     else
-
         "get the positions of all delim types on the line 
         let indxLeft = s:FindDelimiterIndex(b:left, line)
         let indxLeftAlt = s:FindDelimiterIndex(b:leftAlt, line)
@@ -2120,7 +2135,7 @@ function s:FindDelimiterIndex(delimiter, line)
         return -1
     endif
 
-    "get the delimiter without esc chars and its length
+
     let l:delimiter = a:delimiter
     let lenDel = strlen(l:delimiter)
 
@@ -2796,7 +2811,7 @@ function s:InstallDocumentation(full_name, revision)
     " Create a new buffer & read in the plugin file (me):
     setl nomodeline
     exe 'enew!'
-    exe 'r ' . l:plugin_file
+    exe 'r ' . escape(l:plugin_file,s:NERDFileNameEscape)
 
     setl modeline
     let l:buf = bufnr("%")
@@ -2827,12 +2842,12 @@ function s:InstallDocumentation(full_name, revision)
     exe "normal :%s/#version#/ v" . a:revision . "/\<CR>"
 
     " Save the help document:
-    exe 'w! ' . l:doc_file
+    exe 'w! ' . escape(l:doc_file,s:NERDFileNameEscape)
     exe l:go_back
     exe 'bw ' . l:buf
 
     " Build help tags:
-    exe 'helptags ' . l:vim_doc_path
+    exe 'helptags ' . escape(l:vim_doc_path,s:NERDFileNameEscape)
 
     return 1
 endfunction
@@ -4268,6 +4283,16 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 6. Changelog {{{2                                         *NERD_com-changelog*
 
+2.0.5
+    - Added support for autoit, autohotkey and docbk filetypes (thanks to
+      Michael Böhler)
+    - Added support for cmake (thanks to Aaron Small)
+    - Added support for htmldjango and django filetypes (thanks to Ramiro
+      Morales)
+    - Improved the delimiters for eruby again
+    - Applied a patch from Seth Mason to fix some pathing issues with the help
+      file installation.
+
 2.0.4
     - Added support for verilog_systemverilog and systemverilog filetypes
       (Thanks to Alexey for the email)
@@ -4456,6 +4481,16 @@ Thanks to Alexey for emailing me about the verilog_systemverilog/systemverilog
 filetypes.
 
 Cheers to Lizendir for the email about the fstab filetype
+
+Thanks to Michael Böhler for emailing me with the autoit, autohotkey and docbk
+filetypes.
+
+Thanks to Aaron Small for emailing me about the cmake filetype.
+
+Thanks to Ramiro for emailing me about the htmldjango and django filetypes.
+
+Thanks to Seth Mason for sending me a patch to fix some pathing issues for the
+help doc installation.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
