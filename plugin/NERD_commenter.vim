@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
 " Last Change:  30 june 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.0.6
+let s:NERD_commenter_version = 2.0.7
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -273,7 +273,11 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('<dtml-comment>','</dtml-comment>') 
     elseif a:filetype == "dylan" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
+    elseif a:filetype == 'ebuild'
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "ecd" 
+        call s:MapDelimiters('#', '')
+    elseif a:filetype == 'eclass'
         call s:MapDelimiters('#', '')
     elseif a:filetype == "eiffel" 
         call s:MapDelimiters('--', '')
@@ -4278,7 +4282,11 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 6. Changelog {{{2                                           *NERDComChangelog*
 
-2.x.x
+2.0.7
+    - Added support for eclass and ebuild filetypes. Thanks to Alex Tarkovsky
+      for the email.
+
+2.0.6
     - Changed the default setting of NERDMapleader to ",c", meaning all the
       maps now start with ,c instead of \c. This is to stop a major mapping
       clash with the vcscommand plugin. Anyone wanting to keep the \c map
@@ -4501,6 +4509,9 @@ help doc installation.
 
 Thanks to Stefano Zacchiroli for emailing me with the debcontrol and
 debchangelog filetypes.
+
+Thanks to Alex Tarkovsky for emailing me about the ebuild and eclass
+filetypes.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
