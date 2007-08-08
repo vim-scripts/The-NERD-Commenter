@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  30 june 2007
+" Last Change:  7 august 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.0.7
+let s:NERD_commenter_version = 2.1.0
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -104,7 +104,11 @@ if !exists("nerd_autocmds_loaded")
 
         "if the user enters a buffer or reads a buffer then we gotta set up
         "the comment delimiters for that new filetype 
-        autocmd BufEnter,BufRead * :call s:SetUpForNewFiletype(&filetype)
+        autocmd BufEnter,BufRead * :call s:SetUpForNewFiletype(&filetype, 0)
+
+        "if the filetype of a buffer changes, force the script to reset the
+        "delims for the buffer 
+        autocmd Filetype * :call s:SetUpForNewFiletype(&filetype, 1)
     augroup END
 
 endif
@@ -119,11 +123,13 @@ endif
 "
 " Args:
 "   -filetype: the filetype to set delimiters for
+"   -forceReset: 1 if the delimiters should be reset if they have already be
+"    set for this buffer.
 "
-function s:SetUpForNewFiletype(filetype)
+function s:SetUpForNewFiletype(filetype, forceReset)
     "if we have already set the delimiters for this buffer then dont go thru
     "it again
-    if exists("b:left") && b:left != ''
+    if !a:forceReset && exists("b:left") && b:left != ''
         return
     endif
 
@@ -313,6 +319,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "fx" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
+    elseif a:filetype == "gams" 
+        call s:MapDelimiters('*', '')
     elseif a:filetype == "gdb" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "gdmo" 
@@ -473,6 +481,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimiters('\"', '')
     elseif a:filetype == "nsis" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "objc"
+        call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "ocaml" 
         call s:MapDelimiters('(*','*)') 
     elseif a:filetype == "occam" 
@@ -581,6 +591,8 @@ function s:SetUpForNewFiletype(filetype)
         call s:MapDelimitersWithAlternative(';','', '#', '') 
     elseif a:filetype == "sas" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "sass" 
+        call s:MapDelimitersWithAlternative('//','', '/*', '')
     elseif a:filetype == "sather" 
         call s:MapDelimiters('--', '')
     elseif a:filetype == "scheme" 
@@ -1491,8 +1503,8 @@ endfunction
 "    mode or not
 "   -type: the type of commenting requested. Can be 'sexy', 'invert',
 "    'minimal', 'toggle', 'alignLeft', 'alignRight', 'alignBoth', 'norm',
-"    'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment'
-function! NERDComment(isVisual, type) 
+"    'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment', 'yank'
+function! NERDComment(isVisual, type) range
     " we want case sensitivity when commenting 
     let prevIgnoreCase = &ignorecase
     set noignorecase
@@ -1503,9 +1515,11 @@ function! NERDComment(isVisual, type)
         let firstCol = col("'<")
         let lastCol = col("'>")
     else
-        let firstLine = line(".")
-        let lastLine = firstLine
+        let firstLine = a:firstline
+        let lastLine = a:lastline
     endif
+
+    let countWasGiven = (a:isVisual == 0 && firstLine != lastLine)
 
     let forceNested = (a:type == 'nested' || g:NERDDefaultNesting)
 
@@ -1569,6 +1583,16 @@ function! NERDComment(isVisual, type)
 
     elseif a:type == 'uncomment'
         call s:UncommentLines(0, firstLine, lastLine)
+
+    elseif a:type == 'yank'
+        if a:isVisual 
+            normal gvy
+        elseif countWasGiven
+            execute firstLine .','. lastLine .'yank'
+        else
+            normal Y
+        endif
+        execute firstLine .','. lastLine .'call NERDComment('. a:isVisual .', "norm")'
     endif
 
     let &ignorecase = prevIgnoreCase
@@ -3343,8 +3367,8 @@ execute 'nnoremap <silent>' . g:NERDComLineInvertMap . ' :call NERDComment(0, "i
 execute 'vnoremap <silent>' . g:NERDComLineInvertMap . ' <ESC>:call NERDComment(1, "invert")<CR>'
 
 " set up the mappings to yank then comment out lines
-execute 'nmap <silent>' . g:NERDComLineYankMap . ' "0Y' . g:NERDComLineMap 
-execute 'vmap <silent>' . g:NERDComLineYankMap . ' "0ygv' . g:NERDComLineMap
+execute 'nmap <silent>' . g:NERDComLineYankMap . ' :call NERDComment(0, "yank")<CR>'
+execute 'vmap <silent>' . g:NERDComLineYankMap . ' <ESC>:call NERDComment(1, "yank")<CR>'
 
 " set up the mappings for left aligned comments 
 execute 'nnoremap <silent>' . g:NERDComAlignLeftMap . ' :call NERDComment(0, "alignLeft")<cr>'
@@ -3522,34 +3546,34 @@ provided that contains menu items corresponding to all the below mappings):
 Most of the following mappings are for normal/visual mode only. The
 |NERDComInsertComment| mapping is for insert mode only.
 
-,cc |NERDComComment| 
+[count],cc |NERDComComment| 
 Comments out the current line or text selected in visual mode.
 
 
-,cn |NERDComNestedComment| 
+[count],cn |NERDComNestedComment| 
 Same as |NERDComComment| but forces nesting.
 
 
-,c<space> |NERDComToggleComment| 
+[count],c<space> |NERDComToggleComment| 
 Toggles the comment state of the selected line(s). If the topmost selected
 line is commented, all selected lines are uncommented and vice versa.
 
 
-,cm |NERDComMinimalComment| 
+[count],cm |NERDComMinimalComment| 
 Comments the given lines using only one set of multipart delimiters if
 possible. 
 
 
-,ci |NERDComInvertComment| 
+[count],ci |NERDComInvertComment| 
 Toggles the comment state of the selected line(s) individually. Each selected
 line that is commented is uncommented and vice versa.
 
 
-,cs |NERDComSexyComment| 
+[count],cs |NERDComSexyComment| 
 Comments out the selected lines ``sexually''
 
 
-,cy |NERDComYankComment|
+[count],cy |NERDComYankComment|
 Same as |NERDComComment| except that the commented line(s) are yanked
 before commenting.
 
@@ -3576,13 +3600,15 @@ Adds comment delimiters at the current cursor position and inserts between.
 Switches to the alternative set of delimiters.
 
 
-,cl OR ,cr OR ,cb |NERDComAlignedComment| 
+[count],cl 
+[count],cr 
+[count],cb    |NERDComAlignedComment| 
 Same as |NERDComComment| except that the delimiters are aligned down the
 left side (,cl), the right side (,cr) or both sides
 (,cb).
 
 
-,cu |NERDComUncommentLine| 
+[count],cu |NERDComUncommentLine| 
 Uncomments the selected line(s).
 
 ------------------------------------------------------------------------------
@@ -3591,7 +3617,7 @@ Uncomments the selected line(s).
 ------------------------------------------------------------------------------
 2.2.1 Comment map                                             *NERDComComment*
 
-Default mapping: ,cc
+Default mapping: [count],cc
 Change the mapping with: NERDComLineMap. 
 Applicable modes: normal visual visual-line visual-block.  
 
@@ -3601,11 +3627,13 @@ mode, they are all commented out.  If some text is selected in visual or
 visual-block mode then the script will try to comment out the exact text that
 is selected using multi-part delimiters if they are available.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
 
 ------------------------------------------------------------------------------
 2.2.2 Nested comment map                                *NERDComNestedComment*
 
-Default mapping: ,cn
+Default mapping: [count],cn
 Change the mapping with: NERDComLineNestMap.
 Applicable modes: normal visual visual-line visual-block.
 
@@ -3617,6 +3645,8 @@ be replaced by place-holder delimiters if needed.  Otherwise the nested
 comment will only be added if the current commenting delimiters have no right
 delimiter (to avoid syntax errors) 
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
 
 Related options:
 |NERDDefaultNesting|
@@ -3624,7 +3654,7 @@ Related options:
 ------------------------------------------------------------------------------
 2.2.3 Toggle comment map                                *NERDComToggleComment* 
 
-Default mapping: ,c<space> 
+Default mapping: [count],c<space> 
 Change the mapping with: NERDComLineToggleMap.
 Applicable modes: normal visual-line.
 
@@ -3635,10 +3665,13 @@ selected lines are uncommented and vice versa.
 With this mapping, a line is only considered to be commented if it starts with
 a left delimiter.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 ------------------------------------------------------------------------------
 2.2.4 Minimal comment map                              *NERDComMinimalComment* 
 
-Default mapping: ,cm
+Default mapping: [count],cm
 Change the mapping with: NERDComLineMinimalMap
 Applicable modes: normal visual-line.
 
@@ -3654,6 +3687,9 @@ selected lines are replaced with place holders (see |NERDLPlace|) if
 the comment will be aborted if place holders are required to prevent illegal
 syntax.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 ------------------------------------------------------------------------------
 2.2.5 Invert comment map                                *NERDComInvertComment*
 
@@ -3668,10 +3704,13 @@ commented/uncommented individually.
 With this mapping, a line is only considered to be commented if it starts with
 a left delimiter.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 ------------------------------------------------------------------------------
 2.2.6 Sexy comment map                                    *NERDComSexyComment*
 
-Default mapping: ,cs  
+Default mapping: [count],cs  
 Change the mapping with: NERDComLineSexyMap
 Applicable modes: normal, visual-line.
 
@@ -3682,13 +3721,16 @@ which there is at least one set of multipart comment delimiters specified.
 Sexy comments cannot be nested and lines inside a sexy comment cannot be
 commented again.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 Related options:
 |NERDCompactSexyComs|
 
 ------------------------------------------------------------------------------
 2.2.7 Yank comment map                                    *NERDComYankComment*
 
-Default mapping: ,cy  
+Default mapping: [count],cy  
 Change the mapping with: NERDComLineYankMap
 Applicable modes: normal visual visual-line visual-block.
 
@@ -3750,7 +3792,7 @@ See also |NERDComDefaultDelims|
 ------------------------------------------------------------------------------
 2.2.13 Comment aligned maps                            *NERDComAlignedComment*
 
-Default mappings: ,cl ,cr ,cb    
+Default mappings: [count],cl   [count],cr   [count],cb    
 Change the mappings with: NERDComAlignLeftMap, NERDComAlignRightMap and
 NERDComAlignBothMap.
 Applicable modes: normal visual-line.
@@ -3759,10 +3801,13 @@ Same as ,cc except that the comment delimiters are aligned on the left
 side, right side or both sides respectively. These comments are always nested
 if the line(s) are already commented. 
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 ------------------------------------------------------------------------------
 2.2.14 Uncomment line map                               *NERDComUncommentLine*
 
-Default mapping: ,cu      
+Default mapping: [count],cu      
 Change the mapping with: NERDUncomLineMap.
 Applicable modes: normal visual visual-line visual-block.
 
@@ -3775,6 +3820,9 @@ When uncommenting, if the line contains multiple sets of delimiters then the
 The script uses a set of heurisics to distinguish ``real'' delimiters from
 ``fake'' ones when uncommenting. See |NERDComIssues| for details.
 
+If a [count] is given in normal mode, the mapping works as though that many
+lines were selected in visual-line mode.
+
 Related  options:
 |NERDRemoveAltComs|
 |NERDRemoveExtraSpaces|
@@ -3784,31 +3832,31 @@ Related  options:
 
 Filetypes that can be commented by this plugin:
 abaqus abc acedb ada ahdl amiga aml ampl ant apache apachestyle asm68k asm asn
-aspvbs atlas autohotkey autoit automake ave awk basic b bc bdf bib bindzone bst
-btm caos catalog c cfg cg ch changelog cl clean clipper cmake conf config
+aspvbs atlas autohotkey autoit automake ave awk basic b bc bdf bib bindzone
+bst btm caos catalog c cfg cg ch changelog cl clean clipper cmake conf config
 context cpp crontab cs csc csp css cterm cupl csv cvs dcl debchangelog
-debcontrol debsources def diff django docbk dns dosbatch dosini dot dracula dsl
-dtd dtml dylan ecd eiffel elf elmfilt erlang eruby eterm expect exports
+debcontrol debsources def diff django docbk dns dosbatch dosini dot dracula
+dsl dtd dtml dylan ecd eiffel elf elmfilt erlang eruby eterm expect exports
 fetchmail fgl focexec form fortran foxpro fstab fvwm fx gdb gdmo geek
-gentoo-package-keywords' gentoo-package-mask' gentoo-package-use' gnuplot gtkrc
-haskell hb h help hercules hog html htmldjango htmlos ia64 icon idlang idl
-indent inform inittab ishd iss ist jam java javascript jess jgraph jproperties
-jproperties jsp kconfig kix kscript lace lex lftp lifelines lilo lisp lite
-lotos lout lprolog lscript lss lua lynx m4 mail make maple masm master matlab
-mel mf mib mma model moduala.  modula2 modula3 monk mush muttrc named nasm
-nastran natural ncf netdict netrw nqc nroff nsis ocaml occam omlet omnimark
-openroad opl ora otl ox pascal passwd pcap pccts perl pfmain php phtml pic pike
-pilrc pine plaintex plm plsql po postscr pov povini ppd ppwiz procmail progress
-prolog psf ptcap python python qf radiance ratpoison r rc readline rebol
-registry remind rexx robots rpl rtf ruby sa samba sas sather scheme scilab
-screen scsh sdl sed selectbuf sgml sgmldecl sgmllnx sicad simula sinda skill
-slang sl slrnrc sm smarty smil smith sml snnsnet snnspat snnsres snobol4 spec
-specman spice sql sqlforms sqlj sqr squid st stp strace svn systemverilog tads
-taglist tags tak tasm tcl terminfo tex text plaintex texinfo texmf tf tidy tli
-trasys tsalt tsscl tssgm uc uil vb verilog verilog_systemverilog vgrindefs vhdl
-vim viminfo virata vo_base vrml vsejcl webmacro wget winbatch wml [^w]*sh
-wvdial xdefaults xf86conf xhtml xkb xmath xml xmodmap xpm2 xpm xslt yacc yaml
-z8a 
+gentoo-package-keywords' gentoo-package-mask' gentoo-package-use' gnuplot
+gtkrc haskell hb h help hercules hog html htmldjango htmlos ia64 icon idlang
+idl indent inform inittab ishd iss ist jam java javascript jess jgraph
+jproperties jproperties jsp kconfig kix kscript lace lex lftp lifelines lilo
+lisp lite lotos lout lprolog lscript lss lua lynx m4 mail make maple masm
+master matlab mel mf mib mma model moduala.  modula2 modula3 monk mush muttrc
+named nasm nastran natural ncf netdict netrw nqc nroff nsis objc ocaml occam
+omlet omnimark openroad opl ora otl ox pascal passwd pcap pccts perl pfmain
+php phtml pic pike pilrc pine plaintex plm plsql po postscr pov povini ppd
+ppwiz procmail progress prolog psf ptcap python python qf radiance ratpoison r
+rc readline rebol registry remind rexx robots rpl rtf ruby sa samba sas sass
+sather scheme scilab screen scsh sdl sed selectbuf sgml sgmldecl sgmllnx sh
+sicad simula sinda skill slang sl slrnrc sm smarty smil smith sml snnsnet
+snnspat snnsres snobol4 spec specman spice sql sqlforms sqlj sqr squid st stp
+strace svn systemverilog tads taglist tags tak tasm tcl terminfo tex text
+plaintex texinfo texmf tf tidy tli trasys tsalt tsscl tssgm uc uil vb verilog
+verilog_systemverilog vgrindefs vhdl vim viminfo virata vo_base vrml vsejcl
+webmacro wget winbatch wml wvdial xdefaults xf86conf xhtml xkb xmath xml
+xmodmap xpm2 xpm xslt yacc yaml z8a 
 
 If a language is not in the list of hardcoded supported filetypes then the
 &commentstring vim option is used.
@@ -3845,7 +3893,7 @@ The arguments to this function are simple:
     - type: is used to specify what type of commenting operation is to be
       performed, and it can be one of the following: 'sexy', 'invert',
       'minimal', 'toggle', 'alignLeft', 'alignRight', 'alignBoth', 'norm',
-      'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment'
+      'nested', 'toEOL', 'prepend', 'append', 'insert', 'uncomment', 'yank'
 
 For example, if you typed >
     :call NERDComment(1, 'sexy')
@@ -4282,6 +4330,17 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 6. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.0
+    - now the script resets the delimiters when the filetype of the buffer
+      changes (thanks to James Hales for the patch)
+    - added formal support/doc for prepending a count to many of the
+      commenting maps so you can go, eg, 5,cc to comment 5 lines from normal
+      mode. Thanks again to James Hales for the patch.
+    - added support for the "gams" filetype that Jorge Rodrigues created.
+    - added support for the "objc" filetype, thanks to Rainer Müller for the
+      email.
+    - added support for the "sass" filetype that Dmitry Ilyashevich created.
+
 2.0.7
     - Added support for eclass and ebuild filetypes. Thanks to Alex Tarkovsky
       for the email.
@@ -4512,6 +4571,14 @@ debchangelog filetypes.
 
 Thanks to Alex Tarkovsky for emailing me about the ebuild and eclass
 filetypes.
+
+Cheers to Jorge Rodrigues for emailing me about the gams filetype.
+
+Cheers to James Hales for the patch that made the comment maps work better with
+counts, and made the script reset comment delims for a buffer when its
+filetype changes.
+
+Thank to Rainer Müller for emailing me with the Objective C delimiters.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
