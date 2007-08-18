@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
 " Last Change:  7 august 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.0
+let s:NERD_commenter_version = 2.1.1
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -335,6 +335,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "gnuplot" 
         call s:MapDelimiters('#','')
+    elseif a:filetype == "groovy"
+        call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "gtkrc" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "haskell" 
@@ -671,6 +673,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('/*','*/')
     elseif a:filetype == "svn" 
         call s:MapDelimiters('','')
+    elseif a:filetype == "SVNcommitlog" 
+        call s:MapDelimiters('','')
     elseif a:filetype == "systemverilog" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "tads" 
@@ -717,6 +721,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('!', '')
     elseif a:filetype == "vb" 
         call s:MapDelimiters("'","") 
+    elseif a:filetype == "vcscommit" 
+        call s:MapDelimiters('','')
     elseif a:filetype == "verilog" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "verilog_systemverilog" 
@@ -3520,9 +3526,10 @@ CONTENTS {{{2                                          *NERDCommenterContents*
     4.Issues with the script..................|NERDComIssues|
         4.1 Delimiter detection heuristics....|NERDComHeuristics|
         4.2 Nesting issues....................|NERDComNesting|
-    5.TODO list...............................|NERDComTodo|
-    6.Changelog...............................|NERDComChangelog|
-    7.Credits.................................|NERDComCredits|
+    5.The author..............................|NERDComAuthor|
+    6.TODO list...............................|NERDComTodo|
+    7.Changelog...............................|NERDComChangelog|
+    8.Credits.................................|NERDComCredits|
 
 ==============================================================================
 1. Intro {{{2                                                  *NERDCommenter*
@@ -4320,7 +4327,18 @@ will become: >
 for simplicity)
 
 ==============================================================================
-5. TODO list {{{2                                                *NERDComTodo*
+6. The author {{{2                                             *NERDComAuthor*
+
+The author of the NERD commenter is Martyzillatron --- the half robot, half
+dinosaur bastard son of Megatron and Godzilla. He enjoys destroying
+metropolises and eating tourist busses.
+
+Drop him a line at martin_grenfell at msn.com. He would love to hear from you.
+its a lonely life being the worlds premier terror machine. How would you feel
+if your face looked like a toaster and a t-rex put together? :(
+
+==============================================================================
+7. TODO list {{{2                                                *NERDComTodo*
 
 Uncommenting of minimal comments needs to be more robust. Currently it is easy
 to get illegal syntax when uncommenting them.
@@ -4328,8 +4346,12 @@ to get illegal syntax when uncommenting them.
 
 
 ==============================================================================
-6. Changelog {{{2                                           *NERDComChangelog*
+8. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.1
+    - added dummy support for SVNcommitlog and vcscommit. Thanks to John
+      O'Shea for the email.
+    - added support for Groovy. Thanks to Jason Mills for the email.
 2.1.0
     - now the script resets the delimiters when the filetype of the buffer
       changes (thanks to James Hales for the patch)
@@ -4431,7 +4453,7 @@ for his patch. Thanks to John O'Shea and fREW for the filetype
 information.
 
 ==============================================================================
-7. Credits {{{2                                               *NERDComCredits*
+8. Credits {{{2                                               *NERDComCredits*
 
 Thanks and respect to the following people:
 
@@ -4537,7 +4559,8 @@ Thanks to Ilia N Ternovich for alerting me to the 'qf' (quickfix) filetype.
 Thanks to Markus Klinik for emailing me about a bug for sexy comments where
 spaces were being eaten.
 
-Thanks to John O'Shea for emailing me about the RTF filetype.
+Thanks to John O'Shea for emailing me about the RTF filetype. Thanks again for
+the SVNcommitlog and vcscommit filetypes.
 
 Thanks to Anders for emailing me a patch to help get rid of all the visual
 bells and screen scrolling, and for sending me the delimiters for the occam
@@ -4579,6 +4602,8 @@ counts, and made the script reset comment delims for a buffer when its
 filetype changes.
 
 Thank to Rainer Müller for emailing me with the Objective C delimiters.
+
+Thanks to Jason Mills for emailing me the Groovy filetype.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
