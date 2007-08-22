@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  7 august 2007
+" Last Change:  22 august 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.1
+let s:NERD_commenter_version = 2.1.2
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -401,6 +401,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "lace" 
         call s:MapDelimiters('--', '')
+    elseif a:filetype == "ldif" 
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "lex" 
         call s:MapDelimiters('/*','*/')
     elseif a:filetype == "lftp" 
@@ -723,6 +725,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters("'","") 
     elseif a:filetype == "vcscommit" 
         call s:MapDelimiters('','')
+    elseif a:filetype == "vera" 
+        call s:MapDelimitersWithAlternative('/*','*/','//','')
     elseif a:filetype == "verilog" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "verilog_systemverilog" 
@@ -4348,6 +4352,10 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 8. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.2
+    - added support for the vera and ldif filetypes. Thanks to Normandie
+      Azucena and Florian Apolloner for the emails.
+
 2.1.1
     - added dummy support for SVNcommitlog and vcscommit. Thanks to John
       O'Shea for the email.
@@ -4604,6 +4612,10 @@ filetype changes.
 Thank to Rainer Müller for emailing me with the Objective C delimiters.
 
 Thanks to Jason Mills for emailing me the Groovy filetype.
+
+Thanks to Normandie Azucena for emailing me about the vera filetype.
+
+Thanks to Florian Apolloner for emailing me about the ldif filetype.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
