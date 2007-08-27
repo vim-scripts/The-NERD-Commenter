@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  22 august 2007
+" Last Change:  28 august 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.2
+let s:NERD_commenter_version = 2.1.3
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -12,17 +12,6 @@ if exists("loaded_nerd_comments")
     finish
 endif
 let loaded_nerd_comments = 1
-
-" Section: tabSpace init {{{2
-" here we get a string that is the same length as a tabstop but with spaces
-" instead of a tab. Also, we store the number of spaces in a tab
-let s:tabSpace = ""
-let s:spacesPerTab = &tabstop
-while s:spacesPerTab > 0
-    let s:tabSpace = s:tabSpace . " "
-    let s:spacesPerTab = s:spacesPerTab - 1
-endwhile
-let s:spacesPerTab = &tabstop
 
 " Section: spaces init {{{2
 " Occasionally we need to grab a string of spaces so just make one here
@@ -415,6 +404,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative(';','', '#|', '|#') 
     elseif a:filetype == "lite" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "lookupfile" 
+        call s:MapDelimiters('', '') 
     elseif a:filetype == "lotos" 
         call s:MapDelimiters('(*','*)') 
     elseif a:filetype == "lout" 
@@ -585,6 +576,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "rpl" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "rst" 
+        call s:MapDelimiters('..', '')
     elseif a:filetype == "rtf" 
         call s:MapDelimiters('', '')
     elseif a:filetype == "ruby" 
@@ -935,15 +928,15 @@ function s:CommentBlock(top, bottom, lSide, rSide, forceNested )
         "boundary accordingly 
         let numTabs = strlen(substitute(topline, '^\(\t*\).*$', '\1', "")) 
         if lSide < numTabs
-            let lSide = s:spacesPerTab * lSide
+            let lSide = &ts * lSide
         else
-            let lSide = (lSide - numTabs) + (s:spacesPerTab * numTabs)
+            let lSide = (lSide - numTabs) + (&ts * numTabs)
         endif
 
         "find out how many tabs are in the bottom line and adjust the right
         "boundary accordingly 
         let numTabs = strlen(substitute(bottomline, '^\(\t*\).*$', '\1', "")) 
-        let rSide = (rSide - numTabs) + (s:spacesPerTab * numTabs)
+        let rSide = (rSide - numTabs) + (&ts * numTabs)
     endif
 
     "we must check that bottom IS actually below top, if it is not then we
@@ -1715,8 +1708,6 @@ endfunction
 "   -line: the line to remove the delimiters from
 function s:RemoveDelimiters(left, right, line)
 
-    "get the left and right delimiters without the esc chars. Also, get their
-    "lengths
     let l:left = a:left
     let l:right = a:right
     let lenLeft = strlen(left)
@@ -1852,6 +1843,8 @@ function s:UncommentLinesSexy(topline, bottomline)
         endif
 
         let theLine = s:SwapOutterPlaceHoldersForMultiPartDelims(theLine)
+
+        let theLine = s:ConvertLeadingWhiteSpace(theLine)
 
         " move onto the next line 
         call setline(currentLine, theLine)
@@ -1997,6 +1990,7 @@ function s:UncommentLineNormal(line)
 
     endif
 
+    let line = s:ConvertLeadingWhiteSpace(line)
 
     return line
 endfunction
@@ -2074,8 +2068,8 @@ endfunction
 "   -line: the line whose leading tabs will be converted
 function s:ConvertLeadingSpacesToTabs(line)
     let toReturn  = a:line
-    while toReturn =~ '^\t*' . s:tabSpace . '\(.*\)$'
-        let toReturn = substitute(toReturn, '^\(\t*\)' . s:tabSpace . '\(.*\)$'  ,  '\1\t\2' , "")
+    while toReturn =~ '^\t*' . s:GetTabSpace() . '\(.*\)$'
+        let toReturn = substitute(toReturn, '^\(\t*\)' . s:GetTabSpace() . '\(.*\)$'  ,  '\1\t\2' , "")
     endwhile
 
     return toReturn
@@ -2091,11 +2085,30 @@ endfunction
 function s:ConvertLeadingTabsToSpaces(line)
     let toReturn  = a:line
     while toReturn =~ '^\( *\)\t'
-        let toReturn = substitute(toReturn, '^\( *\)\t',  '\1' . s:tabSpace , "")
+        let toReturn = substitute(toReturn, '^\( *\)\t',  '\1' . s:GetTabSpace() , "")
     endwhile
 
     return toReturn
 endfunction
+
+" Function: s:ConvertLeadingWhiteSpace(line) {{{2
+" Converts the leading white space to tabs/spaces depending on &ts
+"
+" Args:
+"   -line: the line to convert
+function s:ConvertLeadingWhiteSpace(line)
+    let toReturn = a:line
+    while toReturn =~ '^ *\t'
+        let toReturn = substitute(toReturn, '^ *\zs\t\ze', s:GetTabSpace(), "g")
+    endwhile
+
+    if !&expandtab
+        let toReturn = s:ConvertLeadingSpacesToTabs(toReturn)
+    endif
+
+    return toReturn
+endfunction
+
 
 " Function: s:CountNonESCedOccurances(str, searchstr, escChar) {{{2
 " This function counts the number of substrings contained in another string.
@@ -2736,6 +2749,18 @@ function s:GetSexyComRight(space, esc)
     return right
 endfunction
 
+"FUNCTION: s:GetTabSpace() {{{2 
+"returns a string of spaces equal in length to &tabstop 
+function s:GetTabSpace()
+    let tabSpace = ""
+    let spacesPerTab = &tabstop
+    while spacesPerTab > 0
+        let tabSpace = tabSpace . " "
+        let spacesPerTab = spacesPerTab - 1
+    endwhile
+    return tabSpace
+endfunction
+
 " Function: s:GetTabbedCol(line, col) {{{2
 " Gets the col number for given line and existing col number. The new col
 " number is the col number when all leading spaces are converted to tabs
@@ -2744,7 +2769,7 @@ endfunction
 "   -col: the abs col 
 function s:GetTabbedCol(line, col)
     let lineTruncated = strpart(a:line, 0, a:col)
-    let lineSpacesToTabs = substitute(lineTruncated, s:tabSpace, '\t', 'g')
+    let lineSpacesToTabs = substitute(lineTruncated, s:GetTabSpace(), '\t', 'g')
     return strlen(lineSpacesToTabs)
 endfunction
 " Function: s:GetUntabbedCol(line, col) {{{2
@@ -2755,7 +2780,7 @@ endfunction
 "   -col: the col that doesnt take into account tabs
 function s:GetUntabbedCol(line, col)
     let lineTruncated = strpart(a:line, 0, a:col)
-    let lineTabsToSpaces = substitute(lineTruncated, '\t', s:tabSpace, 'g')
+    let lineTabsToSpaces = substitute(lineTruncated, '\t', s:GetTabSpace(), 'g')
     return strlen(lineTabsToSpaces)
 endfunction
 " Function: s:HasMultipartDelims() {{{2
@@ -3317,7 +3342,6 @@ function s:SwapOutterMultiPartDelimsForPlaceHolders(line)
 
     return line2
 endfunction
-
 
 " Function: s:SwapOutterPlaceHoldersForMultiPartDelims(line) {{{2
 " This function takes a line and swaps the outtermost place holders for
@@ -4352,6 +4376,14 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 8. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.2.1
+	- fixed numerous bugs that were causing tabs to permanently be converted
+	  to spaces, even if noexpandtab was set. Thanks to Heptite on #vim for
+	  working with me to track them down :)
+    - added dummy support for "lookupfile". Thanks to David Fishburn for the
+      email.
+    - added support for "rst", thanks to Niels Aan de Brugh for the email.
+
 2.1.2
     - added support for the vera and ldif filetypes. Thanks to Normandie
       Azucena and Florian Apolloner for the emails.
@@ -4616,6 +4648,13 @@ Thanks to Jason Mills for emailing me the Groovy filetype.
 Thanks to Normandie Azucena for emailing me about the vera filetype.
 
 Thanks to Florian Apolloner for emailing me about the ldif filetype.
+
+Cheers to David Fishburn for emailing me with the lookupfile filetype.
+
+Thanks to Niels Aan de Brugh for emailing me with the rst filetype.
+
+Cheers to heptite on #vim for helping me track down some tab-space conversion
+bugs.
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
