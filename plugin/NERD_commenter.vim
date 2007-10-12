@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  29 sep 2007
+" Last Change:  13 oct 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.4
+let s:NERD_commenter_version = 2.1.5
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -180,6 +180,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative("'",'', 'REM ', '')
     elseif a:filetype == "b" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "bbx" 
+        call s:MapDelimiters('%', '')
     elseif a:filetype == "bc" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "bdf" 
@@ -261,7 +263,7 @@ function s:SetUpForNewFiletype(filetype, forceReset)
     elseif a:filetype == "dns" 
         call s:MapDelimiters(';', '')
     elseif a:filetype == "dosbatch" 
-        call s:MapDelimiters('REM ','')
+        call s:MapDelimitersWithAlternative('REM ','', '::', '')
     elseif a:filetype == "dosini" 
         call s:MapDelimiters(';', '')
     elseif a:filetype == "dot" 
@@ -406,6 +408,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('/*','*/')
     elseif a:filetype == "lilo" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "lilypond" 
+        call s:MapDelimiters('%', '')
     elseif a:filetype == "lisp" 
         call s:MapDelimitersWithAlternative(';','', '#|', '|#') 
     elseif a:filetype == "lite" 
@@ -426,6 +430,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative('--','', '--[[', ']]') 
     elseif a:filetype == "lynx" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "lytex" 
+        call s:MapDelimiters('%', '')
     elseif a:filetype == "m4" 
         call s:MapDelimiters('dnl ', '')
     elseif a:filetype == "mail"
@@ -434,6 +440,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#','') 
     elseif a:filetype == "maple" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "markdown" 
+        call s:MapDelimiters('<!--', '-->')
     elseif a:filetype == "masm" 
         call s:MapDelimiters(';', '')
     elseif a:filetype == "master" 
@@ -4252,6 +4260,14 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 8. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.5
+    - added support for lilypond, bbx and lytex. Thanks to Eyolf Østrem for
+      the email.
+    - added an alterative set of delimiters for the dosbatch filetype, thanks
+      to Ingo Karkat for the email.
+    - added support for the markdown filetype. Thanks to Nicolas Weber for the
+      posting the issue.
+
 2.1.4
     - added support for the ahk filetype. Cheers to Don Hatlestad for the
       email.
@@ -4547,6 +4563,13 @@ Cheers to Don Hatlestad for telling me about the ahk filetype
 Thanks to Christophe Benz for emailing me with the Desktop and xsd filetypes.
 
 Cheers to Cheng Fang for the bug reports :D
+
+Cheers to Eyolf Østrem for emailing me about the lilypond, bbx and lytex
+filetypes.
+
+Thanks to Ingo Karkat for emailing me with the alternative dosbatch delimiters.
+
+Thanks to Nicolas Weber for the markdown filetype :)
 
 Cheers to myself for being the best looking man on Earth!
 === END_DOC
