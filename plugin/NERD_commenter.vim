@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  13 oct 2007
+" Last Change:  26 oct 2007
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.5
+let s:NERD_commenter_version = 2.1.6
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -216,6 +216,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "cmake"
         call s:MapDelimiters('#','')
+    elseif a:filetype == "cobol" 
+        call s:MapDelimiters('', '')
     elseif a:filetype == "conf" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "config" 
@@ -242,6 +244,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('','')
     elseif a:filetype == "cvs" 
         call s:MapDelimiters('CVS:','')
+    elseif a:filetype == "d" 
+        call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "dcl" 
         call s:MapDelimiters('$!', '')
     elseif a:filetype == "debchangelog" 
@@ -326,6 +330,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('--', '')
     elseif a:filetype == "geek" 
         call s:MapDelimiters('GEEK_COMMENT:', '')
+    elseif a:filetype == "gentoo-conf-d" 
+        call s:MapDelimiters('#', '')
     elseif a:filetype == 'gentoo-package-keywords'
         call s:MapDelimiters('#', '')
     elseif a:filetype == 'gentoo-package-mask' 
@@ -730,6 +736,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters("'","") 
     elseif a:filetype == "vcscommit" 
         call s:MapDelimiters('','')
+    elseif a:filetype == "velocity" 
+        call s:MapDelimitersWithAlternative("##","", '#*', '*#') 
     elseif a:filetype == "vera" 
         call s:MapDelimitersWithAlternative('/*','*/','//','')
     elseif a:filetype == "verilog" 
@@ -4260,6 +4268,13 @@ to get illegal syntax when uncommenting them.
 ==============================================================================
 8. Changelog {{{2                                           *NERDComChangelog*
 
+2.1.6
+    - added support for gentoo-conf-d thanks to tinoucas for posting the issue
+      and the patch
+    - added support for the D filetype. Thanks to Greg Weber for the email.
+    - added dummy support for cobol, cheers to timberke for posting the issue.
+    - added support for velocity. Thanks to Bruce Sherrod for the email.
+
 2.1.5
     - added support for lilypond, bbx and lytex. Thanks to Eyolf Østrem for
       the email.
@@ -4418,8 +4433,6 @@ Thanks again to Nguyen for complaining about the NERD_comments menu mapping
 NERD_dont_create_menu_shortcut option was born :P
 (it was then replaced with NERD_menu_mode in version 1.67 :)
 
-Thanks to Sam R for pointing out some filetypes that NERD_comments could support!
-
 Cheers to Litchi for the idea of having a mapping that appends a comment to
 the current line :)
 
@@ -4478,99 +4491,73 @@ And for suggested improvements to minimal comments.
 Thanks to Norick Chen for emailing in a patch that fixed the asp delimiters.
 In 1.65
 
-Thanks to Jonathan Derque for alerting me to some filetypes that could be
-supported (Namely: context, plaintext and mail).
-
 Thanks to Joseph Barker for the sugesting that the menu be an optional
 feature.
 
 Thanks to Gary Church and Tim Carey-Smith for complaining about the
 keymappings and causing me to introduce the NERD_mapleader option :)
 
-Thanks to Vigil for pointing out that the "fetchmail" filetype was not
-supported and emailing me the delimiters        
-
-Thanks to Michael Brunner for telling me about the kconfig filetype.
-
-Thanks to Antono Vasiljev for telling me about the netdict filetype.
-
-Thanks to Melissa Reid for telling me about the omlet filetype.
-
-Thanks to Ilia N Ternovich for alerting me to the 'qf' (quickfix) filetype.
-
 Thanks to Markus Klinik for emailing me about a bug for sexy comments where
 spaces were being eaten.
 
-Thanks to John O'Shea for emailing me about the RTF filetype. Thanks again for
-the SVNcommitlog and vcscommit filetypes.
-
 Thanks to Anders for emailing me a patch to help get rid of all the visual
-bells and screen scrolling, and for sending me the delimiters for the occam
-filetype.
+bells and screen scrolling.
 
 Thanks to Anders and Markus Klinik for emailing me about the screen scrolling
 issues and finally getting me off my ass about them :P
 
-Thanks to Mark Woodward for emailing me about the csv filetype.
-
-Thanks to fREW for emailing me with the /gentoo-package-(mask|keywords|use)/
-filetypes the vo_base filetype.
-
-Thanks to Alexey for emailing me about the verilog_systemverilog/systemverilog
-filetypes.
-
-Cheers to Lizendir for the email about the fstab filetype
-
-Thanks to Michael Böhler for emailing me with the autoit, autohotkey and docbk
-filetypes.
-
-Thanks to Aaron Small for emailing me about the cmake filetype.
-
-Thanks to Ramiro for emailing me about the htmldjango and django filetypes.
-
 Thanks to Seth Mason for sending me a patch to fix some pathing issues for the
 help doc installation.
-
-Thanks to Stefano Zacchiroli for emailing me with the debcontrol and
-debchangelog filetypes.
-
-Thanks to Alex Tarkovsky for emailing me about the ebuild and eclass
-filetypes.
-
-Cheers to Jorge Rodrigues for emailing me about the gams filetype.
 
 Cheers to James Hales for the patch that made the comment maps work better with
 counts, and made the script reset comment delims for a buffer when its
 filetype changes.
 
-Thank to Rainer Müller for emailing me with the Objective C delimiters.
-
-Thanks to Jason Mills for emailing me the Groovy filetype.
-
-Thanks to Normandie Azucena for emailing me about the vera filetype.
-
-Thanks to Florian Apolloner for emailing me about the ldif filetype.
-
-Cheers to David Fishburn for emailing me with the lookupfile filetype.
-
-Thanks to Niels Aan de Brugh for emailing me with the rst filetype.
-
 Cheers to heptite on #vim for helping me track down some tab-space conversion
 bugs.
 
-Cheers to Don Hatlestad for telling me about the ahk filetype
-
-Thanks to Christophe Benz for emailing me with the Desktop and xsd filetypes.
-
 Cheers to Cheng Fang for the bug reports :D
 
-Cheers to Eyolf Østrem for emailing me about the lilypond, bbx and lytex
-filetypes.
+Not to forget! Thanks to the following people for sending me new filetypes to
+support :D
 
-Thanks to Ingo Karkat for emailing me with the alternative dosbatch delimiters.
-
-Thanks to Nicolas Weber for the markdown filetype :)
-
-Cheers to myself for being the best looking man on Earth!
+The hackers                         The filetypes~
+Sam R                               verilog
+Jonathan                            Derque context, plaintext and mail
+Vigil                               fetchmail
+Michael Brunner                     kconfig
+Antono Vasiljev                     netdict
+Melissa Reid                        omlet
+Ilia N Ternovich                    quickfix
+John O'Shea                         RTF, SVNcommitlog and vcscommit
+Anders                              occam
+Mark Woodward                       csv
+fREW                                gentoo-package-mask,
+                                    gentoo-package-keywords,
+                                    gentoo-package-use, and vo_base
+Alexey                              verilog_systemverilog, systemverilog
+Lizendir                            fstab
+Michael Böhler                      autoit, autohotkey and docbk
+Aaron Small                         cmake
+Ramiro                              htmldjango and django
+Stefano Zacchiroli                  debcontrol and debchangelog
+Alex Tarkovsky                      ebuild and eclass
+Jorge Rodrigues                     gams
+Rainer Müller                       Objective C
+Jason Mills                         Groovy
+Normandie Azucena                   vera
+Florian Apolloner                   ldif
+David Fishburn                      lookupfile
+Niels Aan de Brugh                  rst
+Don Hatlestad                       ahk
+Christophe Benz                     Desktop and xsd
+Eyolf Østrem                        lilypond, bbx and lytex
+Ingo Karkat                         dosbatch
+Nicolas Weber                       markdown  
+tinoucas                            gentoo-conf-d
+Greg Weber                          D
+Bruce Sherrod                       velocity
+timberke                            cobol
 === END_DOC
+
 " vim: set foldmethod=marker :
