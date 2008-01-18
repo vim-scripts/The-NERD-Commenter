@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  14 dec 2007
+" Last Change:  18 jan 2008
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.8
+let s:NERD_commenter_version = 2.1.9
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -132,6 +132,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
     "hardcoded the comment delimiters to use 
     if a:filetype == "" 
         call s:MapDelimiters('', '')
+    elseif a:filetype == "aap" 
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "abaqus" 
         call s:MapDelimiters('**', '')
     elseif a:filetype == "abc" 
@@ -248,6 +250,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('','')
     elseif a:filetype == "cvs" 
         call s:MapDelimiters('CVS:','')
+    elseif a:filetype == "CVSAnnotate" 
+        call s:MapDelimiters('','')
     elseif a:filetype == "d" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "dcl" 
@@ -482,6 +486,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('(*','*)') 
     elseif a:filetype == "monk" 
         call s:MapDelimiters(';', '')
+    elseif a:filetype == "mrxvtrc" 
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "mush" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "muttrc" 
@@ -702,7 +708,11 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('--', '')
     elseif a:filetype == "strace" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "SVKAnnotate" 
+        call s:MapDelimiters('','')
     elseif a:filetype == "svn" 
+        call s:MapDelimiters('','')
+    elseif a:filetype == "SVNAnnotate" 
         call s:MapDelimiters('','')
     elseif a:filetype == "SVNcommitlog" 
         call s:MapDelimiters('','')
