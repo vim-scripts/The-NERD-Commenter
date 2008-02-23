@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  22 Feb 2008
+" Last Change:  24 Feb 2008
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.10
+let s:NERD_commenter_version = 2.1.11
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -1453,7 +1453,7 @@ function! NERDComment(isVisual, type) range
         let firstLine = line("'<")
         let lastLine = line("'>")
         let firstCol = col("'<")
-        let lastCol = col("'>") - (&selection == 'exclusive' && has("gui_running") ? 1 : 0)
+        let lastCol = col("'>") - (&selection == 'exclusive' ? 1 : 0)
     else
         let firstLine = a:firstline
         let lastLine = a:lastline
