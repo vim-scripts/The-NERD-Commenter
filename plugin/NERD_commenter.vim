@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  24 Feb 2008
+" Last Change:  31 March 2008
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.11
+let s:NERD_commenter_version = 2.1.12
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -256,6 +256,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "dcl" 
         call s:MapDelimiters('$!', '')
+    elseif a:filetype == "dakota" 
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "debchangelog" 
         call s:MapDelimiters('', '')
     elseif a:filetype == "debcontrol" 
@@ -342,16 +344,28 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('GEEK_COMMENT:', '')
     elseif a:filetype == "gentoo-conf-d" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "gentoo-env-d"
+        call s:MapDelimiters('#', '')
+    elseif a:filetype == "gentoo-init-d"
+        call s:MapDelimiters('#', '')
+    elseif a:filetype == "gentoo-make-conf"
+        call s:MapDelimiters('#', '')
     elseif a:filetype == 'gentoo-package-keywords'
         call s:MapDelimiters('#', '')
     elseif a:filetype == 'gentoo-package-mask' 
         call s:MapDelimiters('#', '')
     elseif a:filetype == 'gentoo-package-use' 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == 'gitAnnotate'
+        call s:MapDelimiters('', '')
+    elseif a:filetype == 'gitdiff'
+        call s:MapDelimiters('', '')
     elseif a:filetype == "gnuplot" 
         call s:MapDelimiters('#','')
     elseif a:filetype == "groovy"
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
+    elseif a:filetype == "grub"
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "gtkrc" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "haskell" 
@@ -478,6 +492,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('>', '')
     elseif a:filetype == "mma" 
         call s:MapDelimiters('(*','*)') 
+    elseif a:filetype == "modconf"
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "model"
         call s:MapDelimiters('$','$') 
     elseif a:filetype =~ "moduala." 
@@ -542,6 +558,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimitersWithAlternative('{','}', '(*', '*)')
     elseif a:filetype == "passwd" 
         call s:MapDelimiters('','')
+    elseif a:filetype == "patran" 
+        call s:MapDelimitersWithAlternative('$','','/*', '*/')
     elseif a:filetype == "pcap" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "pccts" 
@@ -712,6 +730,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('--', '')
     elseif a:filetype == "strace" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "sudoers"
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "SVKAnnotate" 
         call s:MapDelimiters('','')
     elseif a:filetype == "svn" 
@@ -719,6 +739,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
     elseif a:filetype == "SVNAnnotate" 
         call s:MapDelimiters('','')
     elseif a:filetype == "SVNcommitlog" 
+        call s:MapDelimiters('','')
+    elseif a:filetype == "SVNdiff"
         call s:MapDelimiters('','')
     elseif a:filetype == "systemverilog" 
         call s:MapDelimitersWithAlternative('//','', '/*','*/')
