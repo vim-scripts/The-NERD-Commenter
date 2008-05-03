@@ -1,7 +1,7 @@
 " vim global plugin that provides easy code commenting for various file types
-" Last Change:  31 March 2008
+" Last Change:  4 May 2008
 " Maintainer:   Martin Grenfell <martin_grenfell at msn.com>
-let s:NERD_commenter_version = 2.1.12
+let s:NERD_commenter_version = 2.1.13
 
 " For help documentation type :help NERDCommenter. If this fails, Restart vim
 " and try again. If it sill doesnt work... the help page is at the bottom 
@@ -59,7 +59,7 @@ call s:InitVariable("g:NERDMenuMode", 3)
 call s:InitVariable("g:NERDLPlace", "[>")
 call s:InitVariable("g:NERDUsePlaceHolders", 1)
 call s:InitVariable("g:NERDRemoveAltComs", 1)
-call s:InitVariable("g:NERDRemoveExtraSpaces", 0)
+call s:InitVariable("g:NERDRemoveExtraSpaces", 1)
 call s:InitVariable("g:NERDRPlace", "<]")
 call s:InitVariable("g:NERDShutUp", '0')
 call s:InitVariable("g:NERDSpaceDelims", 0)
@@ -358,6 +358,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == 'gitAnnotate'
         call s:MapDelimiters('', '')
+    elseif a:filetype == 'gitcommit'
+        call s:MapDelimiters('', '')
     elseif a:filetype == 'gitdiff'
         call s:MapDelimiters('', '')
     elseif a:filetype == "gnuplot" 
@@ -444,6 +446,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "lilypond" 
         call s:MapDelimiters('%', '')
+    elseif a:filetype == "liquid"
+        call s:MapDelimiters('{%', '%}')
     elseif a:filetype == "lisp" 
         call s:MapDelimitersWithAlternative(';','', '#|', '|#') 
     elseif a:filetype == "lite" 
@@ -608,6 +612,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "ptcap" 
         call s:MapDelimiters('#', '')
+    elseif a:filetype == "pyrex"
+        call s:MapDelimiters('#','')
     elseif a:filetype == "python" 
         call s:MapDelimiters('#','') 
     elseif a:filetype == "qf" 
@@ -632,6 +638,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "rexx" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "rib"
+        call s:MapDelimiters('#','')
     elseif a:filetype == "robots" 
         call s:MapDelimiters('#', '')
     elseif a:filetype == "rpl" 
@@ -668,6 +676,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('#', '')
     elseif a:filetype == "selectbuf" 
         call s:MapDelimiters('', '')
+    elseif a:filetype == "services"
+        call s:MapDelimiters('#', '')
     elseif a:filetype == "sgml" 
         call s:MapDelimiters('<!','>') 
     elseif a:filetype == "sgmldecl" 
@@ -686,6 +696,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('%', '')
     elseif a:filetype == "sl" 
         call s:MapDelimiters('/*','*/')
+    elseif a:filetype == "slice" 
+        call s:MapDelimitersWithAlternative('//','', '/*','*/')
     elseif a:filetype == "slrnrc" 
         call s:MapDelimiters('%', '')
     elseif a:filetype == "sm" 
@@ -804,6 +816,8 @@ function s:SetUpForNewFiletype(filetype, forceReset)
         call s:MapDelimiters('"','') 
     elseif a:filetype == "viminfo" 
         call s:MapDelimiters('','') 
+    elseif a:filetype == "vimperator"
+        call s:MapDelimiters('"','')
     elseif a:filetype == "virata" 
         call s:MapDelimiters('%', '')
     elseif a:filetype == "vo_base" 
@@ -1274,12 +1288,14 @@ function s:CommentLinesSexy(topline, bottomline)
         call setline(a:topline, theLine)
 
         "comment the bottom line 
-        let theLine = getline(a:bottomline)
-        let lineHasTabs = s:HasLeadingTabs(theLine)
-        if lineHasTabs
-            let theLine = s:ConvertLeadingTabsToSpaces(theLine)
+        if a:bottomline != a:topline
+            let theLine = getline(a:bottomline)
+            let lineHasTabs = s:HasLeadingTabs(theLine)
+            if lineHasTabs
+                let theLine = s:ConvertLeadingTabsToSpaces(theLine)
+            endif
+            let theLine = s:SwapOutterMultiPartDelimsForPlaceHolders(theLine)
         endif
-        let theLine = s:SwapOutterMultiPartDelimsForPlaceHolders(theLine)
         let theLine = s:AddRightDelim(spaceString . right, theLine)
         if lineHasTabs
             let theLine = s:ConvertLeadingSpacesToTabs(theLine)
@@ -1436,7 +1452,7 @@ function s:InvertComment(firstLine, lastLine)
 
         " if the line is commented normally, uncomment it 
         if s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine)
-            call s:UncommentLines(1, currentLine, currentLine)
+            call s:UncommentLines(currentLine, currentLine)
             let currentLine = currentLine + 1
 
         " check if the line is commented sexually 
@@ -1506,7 +1522,7 @@ function! NERDComment(isVisual, type) range
         try
             call s:CommentLinesSexy(firstLine, lastLine)
         catch /NERDCommenter.Delimiters/
-            call s:NerdEcho("Sexy comments cannot be done with the available delimiters", 0)
+            call s:CommentLines(forceNested, 0, 0, firstLine, lastLine)
         catch /NERDCommenter.Nesting/
             call s:NerdEcho("Sexy comment aborted. Nested sexy cannot be nested", 0)
         endtry
@@ -1515,7 +1531,7 @@ function! NERDComment(isVisual, type) range
         let theLine = getline(firstLine)
 
         if s:IsInSexyComment(firstLine) || s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine)
-            call s:UncommentLines(1, firstLine, lastLine)
+            call s:UncommentLines(firstLine, lastLine)
         else
             call s:CommentLinesToggle(forceNested, firstLine, lastLine)
         endif
@@ -1544,7 +1560,7 @@ function! NERDComment(isVisual, type) range
         call s:PlaceDelimitersAndInsBetween()
 
     elseif a:type == 'uncomment'
-        call s:UncommentLines(0, firstLine, lastLine)
+        call s:UncommentLines(firstLine, lastLine)
 
     elseif a:type == 'yank'
         if a:isVisual 
@@ -1703,14 +1719,13 @@ function s:RemoveDelimiters(left, right, line)
     return line
 endfunction
 
-" Function: s:UncommentLines(onlyWholeLineComs, topLine, bottomLine) {{{2
+" Function: s:UncommentLines(topLine, bottomLine) {{{2
 " This function uncomments the given lines
 "
 " Args:
-" onlyWholeLineComs: should be 1 for toggle style uncommenting
 " topLine: the top line of the visual selection to uncomment
 " bottomLine: the bottom line of the visual selection to uncomment
-function s:UncommentLines(onlyWholeLineComs, topLine, bottomLine) 
+function s:UncommentLines(topLine, bottomLine) 
     "make local copies of a:firstline and a:lastline and, if need be, swap
     "them around if the top line is below the bottom
     let l:firstline = a:topLine
@@ -1743,12 +1758,7 @@ function s:UncommentLines(onlyWholeLineComs, topLine, bottomLine)
 
         "no sexy com was detected so uncomment the line as normal 
         else
-            let theLine = getline(currentLine)
-            if a:onlyWholeLineComs && (s:IsCommentedFromStartOfLine(b:left, theLine) || s:IsCommentedFromStartOfLine(b:leftAlt, theLine))
-                call s:UncommentLinesNormal(currentLine, currentLine)
-            elseif !a:onlyWholeLineComs
-                call s:UncommentLinesNormal(currentLine, currentLine)
-            endif
+            call s:UncommentLinesNormal(currentLine, currentLine)
             let currentLine = currentLine + 1
         endif
     endwhile
@@ -1901,16 +1911,16 @@ function s:UncommentLineNormal(line)
 
         "remove the outter most left comment delim 
         if indxLeft != -1 && (indxLeft < indxLeftAlt || indxLeftAlt == -1)
-            let line = s:ReplaceLeftMostDelim(b:left, '', line)
+            let line = s:RemoveDelimiters(b:left, '', line)
         elseif indxLeftAlt != -1
-            let line = s:ReplaceLeftMostDelim(b:leftAlt, '', line)
+            let line = s:RemoveDelimiters(b:leftAlt, '', line)
         endif
 
         "remove the outter most right comment delim 
         if indxRight != -1 && (indxRight < indxRightAlt || indxRightAlt == -1)
-            let line = s:ReplaceRightMostDelim(b:right, '', line)
+            let line = s:RemoveDelimiters('', b:right, line)
         elseif indxRightAlt != -1
-            let line = s:ReplaceRightMostDelim(b:rightAlt, '', line)
+            let line = s:RemoveDelimiters('', b:rightAlt, line)
         endif
     endif
 
@@ -2315,12 +2325,12 @@ function s:FindBoundingLinesOfSexyCom(lineNum)
         let theLine = getline(currentLine)
 
         "check if the current line is the top of the sexy comment
-        if theLine =~ '^[ \t]*' . left && theLine !~ '.*' . right
+        if currentLine <= a:lineNum && theLine =~ '^[ \t]*' . left && theLine !~ '.*' . right && currentLine < s:NumLinesInBuf()
             let top = currentLine
             let currentLine = a:lineNum
 
         "check if the current line is the bottom of the sexy comment
-        elseif theLine =~ '^[ \t]*' . right && theLine !~ '.*' . left
+        elseif theLine =~ '^[ \t]*' . right && theLine !~ '.*' . left && currentLine > 1
             let bottom = currentLine
 
         "the right delimiter is on the same line as the last sexyComMarker 
