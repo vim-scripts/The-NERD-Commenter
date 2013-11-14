@@ -67,8 +67,8 @@ context cpp crontab cs csc csp css cterm cupl csv cvs dcl debchangelog
 debcontrol debsources def diff django docbk dns dosbatch dosini dot dracula dsl
 dtd dtml dylan ecd eiffel elf elmfilt erlang eruby eterm expect exports
 fetchmail fgl focexec form fortran foxpro fstab fvwm fx gdb gdmo geek
-gentoo-package-keywords' gentoo-package-mask' gentoo-package-use' gnuplot gtkrc
-haskell hb h help hercules hog html htmldjango htmlos ia64 icon idlang idl
+gentoo-package-keywords' gentoo-package-mask' gentoo-package-use' gnuplot go
+gtkrc haskell hb h help hercules hog html htmldjango htmlos ia64 icon idlang idl
 indent inform inittab ishd iss ist jam java javascript jess jgraph jproperties
 jproperties jsp kconfig kix kscript lace lex lftp lifelines lilo lisp lite
 lotos lout lprolog lscript lss lua lynx m4 mail make maple masm master matlab
@@ -77,7 +77,7 @@ nastran natural ncf netdict netrw nqc nroff nsis ocaml occam omlet omnimark
 openroad opl ora otl ox pascal passwd pcap pccts perl pfmain php phtml pic pike
 pilrc pine plaintex plm plsql po postscr pov povini ppd ppwiz procmail progress
 prolog psf ptcap python python qf radiance ratpoison r rc readline rebol
-registry remind rexx robots rpl rtf ruby sa samba sas sather scheme scilab
+registry remind rexx robots rpl rtf ruby rust sa samba sas sather scheme scilab
 screen scsh sdl sed selectbuf sgml sgmldecl sgmllnx sicad simula sinda skill
 slang sl slrnrc sm smarty smil smith sml snnsnet snnspat snnsres snobol4 spec
 specman spice sql sqlforms sqlj sqr squid st stp strace svn systemverilog tads
